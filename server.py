@@ -1,29 +1,29 @@
-# import socket
-# host = ""
-# port = 8080
-
-# c = socket.socket(socket.AF_INET, socke.SOCK_STREAM)
-# c.setsocketopt(socket.SOL_SOCKET, socket.SO_REUSEADDR , 1)
-
-# c.bind((host,port))
-# c.listen(1)
-# while 1:
-# 	csock , caddr = c.accept()
-# 	cfile = csock.makefile('rw',0)
-
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 import os
+import sys
 
 #HTTPReuestHandler class
 
-class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
+class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):		
+	#function to read/write html
+	def read_text(self,file):
+		with open(file,"r") as new_file:
+			return new_file.read()
+		
+	#function to read binary files		
+	def read_images(self,file):
+		with open(file,"rb") as new_file:
+			#return str.encode(new_file.read())
+			return new_file.read()
+
 	#GET
 	def do_GET(self):
 		#self.send_response(200)
 		
 		
 		message = "<html><head><title>pyServer</title></head><body>hello there</body></html>"
+		isMedia = False
 		
 		#self.send_header('Content-type','text/html')
 		#self.end_headers()
@@ -31,17 +31,26 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		requested_file = "./public_html"+self.path
 		if Path(requested_file).is_file():
 			try:
-				file = open(requested_file,"r",)
-				html_content = file.read()
-				file.close()
+				#file = open(requested_file,"r",)
+				#html_content = file.read()
+				#file.close()
 				self.send_response(200)
 				if requested_file.endswith('.css'):
+					html_content = self.read_text(requested_file)
 					self.send_header('Content-type','text/css')
 					self.end_headers()
 				elif requested_file.endswith('.jpg'):
+					html_content = self.read_images(requested_file)
 					self.send_header('Content-type','image/jpeg')
+					#self.send_header("Content-length", os.path.getsize(requested_file))
+					#self.send_header("content-length",sys.getsizeof(html_content))
 					self.end_headers()
+					isMedia = True
+				elif requested_file.endswith(".js"):
+					html_content = self.read_text(requested_file)
+					self.send_header('content-type','application/javascript')
 				else:
+					html_content = self.read_text(requested_file)
 					self.send_header('Content-type','text/html')
 					self.end_headers()
 				
@@ -66,7 +75,10 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			html_content = "<html><head><title>pyServer</title></head><body>404 : not found</body></html>"
 		
 		message = html_content
-		self.wfile.write(bytes(message,"utf8"))
+		if isMedia:
+			self.wfile.write(message)
+		else:
+			self.wfile.write(bytes(message,"utf8"))
 		return
 	
 def run():
