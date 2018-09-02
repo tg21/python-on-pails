@@ -40,12 +40,16 @@ def showDir(dirPath):
         content = runPHP(dirPath+"/index.php")
     elif "index.html" in files:
         content = read_text(dirPath+"/index.html")
+        
+     #listing directory content   
     else:
         mimType = "text/html"
         fileLinks = "<ul>"
         for i in range(len(files)):         
-            #fileLinks += "<li><a href = "+dirPath+files[i]+">"+files[i]+"</a></li>"
-            fileLinks += "<li><a href = ./"+files[i]+">"+files[i]+"</a></li>"
+            if Path(dirPath+files[i]).is_file():
+                fileLinks += "<li><a href = "+files[i]+">"+files[i]+"</a></li>"
+            else:
+                fileLinks += "<li><a href = "+files[i]+"/>"+files[i]+"</a></li>"
         content = "<html><head><title>PyOP</title></head><body>"+fileLinks+"</ul></body></html>"
         
     return content
@@ -66,6 +70,10 @@ def response(requested_file):
                 content = read_media(requested_file)
                 mimeType = "image/jpeg"
                 isMedia = True
+            elif requested_file.endswith('.jpeg'):
+                content = read_media(requested_file)
+                mimeType = "image/jpeg"
+                isMedia = True            
             elif requested_file.endswith(".js"):
                 content = read_text(requested_file)
                 mimeType = "application/javascript"

@@ -9,8 +9,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 	#GET
 	def do_GET(self):
 		print(self.path)
-		requested_file = "./public_html"+self.path
-		#requested_file = "."+self.path+"/"
+		requested_file = "."+self.path
 		content,mimeType,errorCode,isMedia = response(requested_file)
 		self.send_response(errorCode)
 		self.send_header('content-type',mimeType)
