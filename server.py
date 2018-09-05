@@ -14,10 +14,16 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		self.send_response(errorCode)
 		self.send_header('content-type',mimeType)
 		self.end_headers()
-		if isMedia:
+		#if isMedia:
+		#if True:
+			#self.wfile.write(content)
+		#else:
+			#self.wfile.write(bytes(str(content),"utf8"))
+		#return
+		try:
 			self.wfile.write(content)
-		else:
-			self.wfile.write(bytes(content,"utf8"))
+		except TypeError as e:
+			self.wfile.write(bytes(content,'utf-8'))
 		return
 	
 def run():

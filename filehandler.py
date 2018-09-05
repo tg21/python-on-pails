@@ -21,7 +21,7 @@ def runPHP(file):
 #function to read simple text files
 
 def read_text(file):
-    with open(file,"r") as nfile:
+    with open(file,"rb") as nfile:
         return nfile.read()
     
 #function to read multimedia files
