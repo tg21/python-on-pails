@@ -10,16 +10,10 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 	def do_GET(self):
 		print(self.path)
 		requested_file = "."+self.path
-		content,mimeType,errorCode,isMedia = response(requested_file)
+		content,mimeType,errorCode = response(requested_file)
 		self.send_response(errorCode)
 		self.send_header('content-type',mimeType)
 		self.end_headers()
-		#if isMedia:
-		#if True:
-			#self.wfile.write(content)
-		#else:
-			#self.wfile.write(bytes(str(content),"utf8"))
-		#return
 		try:
 			self.wfile.write(content)
 		except TypeError as e:
