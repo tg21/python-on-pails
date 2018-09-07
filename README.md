@@ -1,8 +1,8 @@
 # Python-On-Pails(PyOP)
 ![](https://procodie.github.io/assets/img/pyop/PyOP_small.png)
-### You all have seen Ruby on Rails now get ready for python on pails.
-#### So what is Python on Pails
-Q: Is it something like Ruby on Rails ,but in python
+## You all have seen Ruby on Rails now get ready for python on pails.
+#### So what is Python on Pails?
+Q: Is it something like Ruby on Rails ,but in python?
 Answer : Nah we have django for that I guess.
 
 #### [Visit Official Website for more Information]("https://procodie.github.io/PyOP)
