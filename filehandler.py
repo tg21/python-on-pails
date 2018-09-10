@@ -5,14 +5,14 @@ import os
 import subprocess
 
 #function to run python files
-def runPy(file):
-    proc = subprocess.Popen(['python', file], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+def runPy(file,data):
+    proc = subprocess.Popen(['python', file,'"'+data+'"'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,shell=True)
     return str(proc.communicate()[0],"utf-8")
 
 #function to run php files
 
-def runPHP(file):
-    proc = subprocess.Popen(['php', file], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+def runPHP(file,data):
+    proc = subprocess.Popen(['php', file,data], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     return str(proc.communicate()[0],"utf-8")
 
 #redirecting pages
@@ -29,20 +29,14 @@ def read_text(file):
     with open(file,"rb") as nfile:
         return nfile.read()
     
-#function to read multimedia files
-
-def read_media(file):
-    with open(file,"rb") as nfile:
-        return nfile.read()
-    
     
 #function to list directories files as a table
 def showDir(dirPath):
     files = os.listdir(dirPath)
     if "index.py" in files:
-        content = runPy(dirPath+"/index.py")
+        content = runPy(dirPath+"/index.py","")
     elif "index.php" in files:
-        content = runPHP(dirPath+"/index.php")
+        content = runPHP(dirPath+"/index.php","")
     elif "index.html" in files:
         content = read_text(dirPath+"/index.html")
         
@@ -62,23 +56,22 @@ def showDir(dirPath):
     
 #function to handle requests
 
-def response(requested_file):
+def response(requested_file,data):
     mimeType = "text/html"
     errorCode = 200
     if Path(requested_file).is_file():
         extension = os.path.splitext(requested_file)[1]
         try:
-            if requested_file.endswith("py"):
-                content = runPy(requested_file)
+            if extension ==".py":
+                content = runPy(requested_file,data)
                 mimeType = "text/html"
-            elif requested_file.endswith(".php"):
-                content = runPHP(requested_file)
+            elif extension == ".php":
+                content = runPHP(requested_file,data)
                 mimeType = "text/html"
             else:
                 content = read_text(requested_file)
                 mimeType = mimeTypes[extension]
                 
-
         except Exception as e:
             mimeType = "text/html"
             print("error ::-- ",e )
