@@ -17,7 +17,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		else:data = ""
 		#requested_file = "./www"+self.path
 		print("Get::requested file is ",requested_file)
-		content,mimeType,errorCode = response(requested_file,data)
+		content,mimeType,errorCode = response(requested_file,data."GET")
 		self.send_response(errorCode)
 		self.send_header('content-type',mimeType)
 		self.end_headers()
@@ -34,7 +34,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		#content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
 		data = str(self.rfile.read(int(self.headers['Content-Length'])),'utf-8')# <--- Gets the data itself
 		print("posted data was:::  ",data)
-		content,mimeType,errorCode = response(requested_file,data)
+		content,mimeType,errorCode = response(requested_file,data,"POST")
 		self.send_response(errorCode)
 		self.send_header('content-type',mimeType)
 		self.end_headers()

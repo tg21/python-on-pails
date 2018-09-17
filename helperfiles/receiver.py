@@ -1,17 +1,16 @@
 import sys
 
 
-#function to read data sent by server
+#function to read data sent by server using get or post method
 def pyGet(key):
     data  = sys.argv[1].replace('"',"")
     if data == "":
-        print("no data sent")
-        return "no data"+data
+        return 0
     else:
         pairs = data.split("&")
         for i in range(len(pairs)):
             if key == pairs[i].split("=")[0]:
                 return pairs[i].split("=")[1]
-        return "no value found"
+        return 0
             
         

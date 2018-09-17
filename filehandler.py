@@ -6,13 +6,16 @@ import subprocess
 
 #function to run python files
 def runPy(file,data):
+    data = data.replace("'","\'")
+    data = data.replace('"','\"')
     proc = subprocess.Popen(['python', file,'"'+data+'"'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,shell=True)
     return str(proc.communicate()[0],"utf-8")
 
 #function to run php files
-
-def runPHP(file,data):
-    proc = subprocess.Popen(['php', file,data], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+def runPHP(file,data,method):
+    data = data.replace("'","\'")
+    data = data.replace('"','\"')    
+    proc = subprocess.Popen(['php', file,'"'+data+'"'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,shell=True)
     return str(proc.communicate()[0],"utf-8")
 
 #redirecting pages
@@ -56,7 +59,7 @@ def showDir(dirPath):
     
 #function to handle requests
 
-def response(requested_file,data):
+def response(requested_file,data,method):
     mimeType = "text/html"
     errorCode = 200
     if Path(requested_file).is_file():
@@ -66,7 +69,7 @@ def response(requested_file,data):
                 content = runPy(requested_file,data)
                 mimeType = "text/html"
             elif extension == ".php":
-                content = runPHP(requested_file,data)
+                content = runPHP(requested_file,data,method)
                 mimeType = "text/html"
             else:
                 content = read_text(requested_file)
