@@ -1,21 +1,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from pathlib import Path
-import os
-import sys
-from filehandler import response
-import json
+from filehandler import response,isExpress,initials
 #HTTPReuestHandler class
-
-with open("config/express.json","r") as read_file:
-	express_dict = json.load(read_file)
-	
-print(express_dict["/config"])
-print(express_dict)
-	
-def isExpress(file):
-	express = express_dict.get(file,False)
-	return express
-	
+express_dict = initials()
 
 class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):		
 	#GET
@@ -23,10 +9,12 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		print(self.path)
 		queryString = self.path.split("?")
 		print(queryString)
-		requested_file = "./www"+queryString[0]
-		express = isExpress(queryString[0])
+		express = isExpress(queryString[0],express_dict)
 		if express:
-			requested_file = express
+			requested_file = "./www"+express
+		else:
+			requested_file = "./www"+queryString[0]
+		
 			
 		if len(queryString)>1:
 			data = str(queryString[1])	

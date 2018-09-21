@@ -3,10 +3,7 @@
 from pathlib import Path
 import os
 import subprocess
-
-def express(request):
-    print("")
-    
+import json
 
 #function to run python files
 def runPy(file,data):
@@ -103,6 +100,16 @@ def response(requested_file,data):
         mimeType = "text/html"
         
     return content,mimeType,errorCode
+
+
+def isExpress(file,express_dict):
+    express = express_dict.get(file,False)
+    return express
+
+def initials():
+    with open("config/express.json","r") as read_file:
+        express_dict = json.load(read_file)
+        return express_dict
 
 
 
