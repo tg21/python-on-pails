@@ -4,6 +4,10 @@ from pathlib import Path
 import os
 import subprocess
 
+def express(request):
+    print("")
+    
+
 #function to run python files
 def runPy(file,data):
     data = data.replace("'","\'")
@@ -12,7 +16,7 @@ def runPy(file,data):
     return str(proc.communicate()[0],"utf-8")
 
 #function to run php files
-def runPHP(file,data,method):
+def runPHP(file,data):
     data = data.replace("'","\'")
     data = data.replace('"','\"')    
     proc = subprocess.Popen(['php', file,'"'+data+'"'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,shell=True)
@@ -47,11 +51,18 @@ def showDir(dirPath):
     else:
         mimType = "text/html"
         fileLinks = "<ul>"
-        for i in range(len(files)):         
-            if Path(dirPath+files[i]).is_file():
-                fileLinks += "<li><a href = "+files[i]+">"+files[i]+"</a></li>"
-            else:
-                fileLinks += "<li><a href = "+files[i]+"/>"+files[i]+"</a></li>"
+        if dirPath.endswith("/"):
+            for i in range(len(files)):         
+                if Path(dirPath+files[i]).is_file():
+                    fileLinks += "<li><a href = "+files[i]+">"+files[i]+"</a></li>"
+                else:
+                    fileLinks += "<li><a href = "+files[i]+"/>"+files[i]+"</a></li>"
+        else:
+            for i in range(len(files)):         
+                if Path(dirPath+"/"+files[i]).is_file():
+                    fileLinks += "<li><a href = /"+files[i]+">"+files[i]+"</a></li>"
+                else:
+                    fileLinks += "<li><a href = /"+files[i]+"/>"+files[i]+"</a></li>"            
         content = "<html><head><title>PyOP</title></head><body>"+fileLinks+"</ul></body></html>"
         
     return content
@@ -59,7 +70,7 @@ def showDir(dirPath):
     
 #function to handle requests
 
-def response(requested_file,data,method):
+def response(requested_file,data):
     mimeType = "text/html"
     errorCode = 200
     if Path(requested_file).is_file():
@@ -69,7 +80,7 @@ def response(requested_file,data,method):
                 content = runPy(requested_file,data)
                 mimeType = "text/html"
             elif extension == ".php":
-                content = runPHP(requested_file,data,method)
+                content = runPHP(requested_file,data)
                 mimeType = "text/html"
             else:
                 content = read_text(requested_file)

@@ -2,8 +2,20 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 import os
 import sys
-from filehandler import showDir,response
+from filehandler import response
+import json
 #HTTPReuestHandler class
+
+with open("config/express.json","r") as read_file:
+	express_dict = json.load(read_file)
+	
+print(express_dict["/config"])
+print(express_dict)
+	
+def isExpress(file):
+	express = express_dict.get(file,False)
+	return express
+	
 
 class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):		
 	#GET
@@ -12,12 +24,16 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		queryString = self.path.split("?")
 		print(queryString)
 		requested_file = "./www"+queryString[0]
+		express = isExpress(queryString[0])
+		if express:
+			requested_file = express
+			
 		if len(queryString)>1:
 			data = str(queryString[1])	
 		else:data = ""
 		#requested_file = "./www"+self.path
 		print("Get::requested file is ",requested_file)
-		content,mimeType,errorCode = response(requested_file,data."GET")
+		content,mimeType,errorCode = response(requested_file,data)
 		self.send_response(errorCode)
 		self.send_header('content-type',mimeType)
 		self.end_headers()
@@ -34,7 +50,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		#content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
 		data = str(self.rfile.read(int(self.headers['Content-Length'])),'utf-8')# <--- Gets the data itself
 		print("posted data was:::  ",data)
-		content,mimeType,errorCode = response(requested_file,data,"POST")
+		content,mimeType,errorCode = response(requested_file,data)
 		self.send_response(errorCode)
 		self.send_header('content-type',mimeType)
 		self.end_headers()

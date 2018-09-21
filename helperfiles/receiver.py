@@ -5,12 +5,12 @@ import sys
 def pyGet(key):
     data  = sys.argv[1].replace('"',"")
     if data == "":
-        return 0
+        return False
     else:
         pairs = data.split("&")
         for i in range(len(pairs)):
             if key == pairs[i].split("=")[0]:
                 return pairs[i].split("=")[1]
-        return 0
+        return False
             
         
