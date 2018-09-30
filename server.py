@@ -1,7 +1,10 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from filehandler import response,isExpress,initials
+from filehandler import response
+from extraFunctions import initials
+import os
+dir_path,express_dict,mimeTypes,host,port,wildcard,project_dir,encryption,logging = initials()
 #HTTPReuestHandler class
-express_dict = initials()
+
 
 class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):		
 	#GET
@@ -9,48 +12,51 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		print(self.path)
 		queryString = self.path.split("?")
 		print(queryString)
-		express = isExpress(queryString[0],express_dict)
+		express = express_dict.get(queryString[0],False)
 		if express:
-			requested_file = "./www"+express
+			requested_file = dir_path+project_dir+express
 		else:
-			requested_file = "./www"+queryString[0]
+			requested_file = dir_path+project_dir+queryString[0]
 		
 			
 		if len(queryString)>1:
-			data = str(queryString[1])	
+			data = str(queryString[1])
 		else:data = ""
-		#requested_file = "./www"+self.path
 		print("Get::requested file is ",requested_file)
-		content,mimeType,errorCode = response(requested_file,data)
+		content,mimeType,errorCode = response(requested_file,data,mimeTypes)
 		self.send_response(errorCode)
 		self.send_header('content-type',mimeType)
 		self.end_headers()
 		try:
 			self.wfile.write(content)
-		except TypeError as e:
+		except TypeError:
 			self.wfile.write(bytes(content,'utf-8'))
 		return
 	
 	def do_POST(self):
 		print(self.path)
-		requested_file = "./www"+self.path
+		express = express_dict.get(self.path,False)
+		if express:
+			requested_file = dir_path+project_dir+express
+		else:
+			requested_file = dir_path+project_dir+self.path
 		print("Post::requested file is ",requested_file)
 		#content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
 		data = str(self.rfile.read(int(self.headers['Content-Length'])),'utf-8')# <--- Gets the data itself
 		print("posted data was:::  ",data)
-		content,mimeType,errorCode = response(requested_file,data)
+		content,mimeType,errorCode = response(requested_file,data,mimeTypes)
 		self.send_response(errorCode)
 		self.send_header('content-type',mimeType)
 		self.end_headers()
 		try:
 			self.wfile.write(content)
-		except TypeError as e:
+		except TypeError:
 			self.wfile.write(bytes(content,'utf-8'))
 		return		
 	
 def run():
 	print("Starting server ...")
-	server_address = ("0.0.0.0",80)
+	server_address = (host,port)
 	httpd = HTTPServer(server_address,testHTTPServer_RequestHandler)
 	print("running server at ",server_address)
 	httpd.serve_forever()
