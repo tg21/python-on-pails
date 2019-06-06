@@ -3,11 +3,15 @@
 import json
 import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
+
 def initials():
+    #loading express urls
     with open(dir_path+"/config/express.json","r") as read_file:
         express_dict = json.load(read_file)
-    with open(dir_path+"/config/express.json","r") as read_file:
+    #Loading mimetypes
+    with open(dir_path+"/config/mimeType.json","r") as read_file:
         mimeTypes_dict = json.load(read_file)
+    #loading initial settings
     with open(dir_path+"/config/settings.json","r") as read_file:
         settings_dict = json.load(read_file)
     host = settings_dict.get("host")

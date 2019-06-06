@@ -3,25 +3,33 @@
 from pathlib import Path
 import os
 import subprocess
-import json
+# import json
 
 def testfun():
     print("hello there")
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+py = "python "
+if(os.name=="posix"):
+    py = "python3 "
 
+# ,stderr=subprocess.STDOUT
+#  stderr=subprocess.STDOUT,
 #function to run python files
 def runPy(file,data):
+    print("Entered runpy")
     data = data.replace("'","\'")
     data = data.replace('"','\"')
-    proc = subprocess.Popen(['python', file,'"'+data+'"'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,shell=True)
+    # proc = subprocess.Popen([py, file,'"'+data+'"'], stdout=subprocess.PIPE,shell=True)
+    proc = subprocess.Popen(py+ file+' "'+data+'"', stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+
     return str(proc.communicate()[0],"utf-8")
 
 #function to run php files
 def runPHP(file,data):
     data = data.replace("'","\'")
     data = data.replace('"','\"')    
-    proc = subprocess.Popen(['php', file,'"'+data+'"'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,shell=True)
+    proc = subprocess.Popen(['php', file,'"'+data+'"'], stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
     return str(proc.communicate()[0],"utf-8")
 
 #redirecting pages
@@ -80,6 +88,7 @@ def response(requested_file,data,mimeTypes):
         try:
             if extension ==".py":
                 content = runPy(requested_file,data)
+                print("exit runpy ",content)
                 mimeType = "text/html"
             elif extension == ".php":
                 content = runPHP(requested_file,data)
