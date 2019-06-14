@@ -1,5 +1,5 @@
 # Python-On-Pails(PyOP)
-![](https://tg21.github.io/assets/img/pyop/PyOP_small.png)
+![](https://tg21.github.io/img/pyop.png)
 ## You all have seen Ruby on Rails now get ready for python on pails.
 #### So what is Python on Pails?
 Q: Is it something like Ruby on Rails ,but in python?\
@@ -9,6 +9,11 @@ Answer :No Idea(Maybe). Never used Rails. All I can say is this program is a "fr
 - Python-On-Pails(PyOP) is just a simple "kind of a framework" programmed in python. It is cool and it also  eliminates the need to install apache2, xampp ,wamp or lamp on systems that already have python(Python3 to be precise) installed.
 - PyOP can use python3 as the main server side language, so you won't have to rely on PHP.(Not that I think anything is wrong with you using PHP but other programmers might make jokes on you.
 - PyOP can serve almost all(more than 500) mimeTypes as it should, and on plus point It can run PHP too if you want(not encouraged).
+
+# Why Make it?
+Currently most developer use flask or django as frameworks for web-development with python.\
+But I found that Django has a steep learning curve, You can't just use it to build web-applications after learning python, you have to watch and read tutorials on Django too.\
+same case exists with flask too. So, I wanted to make a framework anybody who has working knowledge of python could use to create Web-Apps.
 
 # New Features!
 
@@ -40,6 +45,21 @@ For production environments...
 do the same as above but at your own risk.
 ```
 
+#### To output HTML from python file
+write whatever you want to be shown on web in print() statement. \
+``` python
+# print files of a folder as follow
+print("""
+<html>
+<head>
+<title>Files</title>
+</head>
+""")
+from os import listdir
+print(listdir())
+print("foo bar")
+```
+
 ## Also, a new feature
 instead of using only one folder to serve files.\
 run surver.py from whichever folder you want, and that server's file will be served.
@@ -61,10 +81,8 @@ e.g.-In windows you add path of directories(containing the executable) to enviro
 
 ### Development
 
-Want to contribute? Great!
-
-I'd like that but I don't know how you can(new to GitHub and all this VCS thing)\
-If you know how and want to contribute [contact]("https://tg21.githib.io/contact.html") me.\
+Want to contribute? Great! \
+If you know how and want to contribute [contact]("https://tg21.githib.io/about.html") me.\
 Help is always welcome.
 
 ### TODOs
@@ -75,6 +93,7 @@ Help is always welcome.
  - Easy TLS encryption
  - Make things like cookies and $_SERVER kind of thing available
  - find and better name and logo for this project.
+ - Make server understand inline python code from html files.
 
 License
 ----
@@ -82,4 +101,4 @@ License
 It has none.(what is this deal with all license stuff and how do I get one?)
 
 
-**Free Software, yeah enjoy!**
+**Free Software Open-Source Software, yeah enjoy!**
