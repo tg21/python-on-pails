@@ -1,5 +1,5 @@
 # Python-On-Pails(PyOP)
-![](https://tg21.github.io/img/pyop.png)
+<img src="https://tg21.github.io/img/pyop.png" alt="PyOP_LOGO" width="300px"><br>
 ## You all have seen Ruby on Rails now get ready for python on pails.
 #### So what is Python on Pails?
 Q: Is it something like Ruby on Rails ,but in python?\
@@ -82,7 +82,7 @@ e.g.-In windows you add path of directories(containing the executable) to enviro
 ### Development
 
 Want to contribute? Great! \
-If you know how and want to contribute [contact]("https://tg21.githib.io/about.html") me.\
+If you know how and want to contribute [contact](https://tg21.github.io/about.html) me.\
 Help is always welcome.
 
 ### TODOs
