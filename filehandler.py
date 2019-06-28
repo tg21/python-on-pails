@@ -3,18 +3,20 @@
 from pathlib import Path
 import os
 import subprocess
+# from html.parser import HTMLParser
 # import json
 
 def testfun():
     print("hello there")
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+
+# two different command for windows and linux respectively
 py = "python "
 if(os.name=="posix"):
     py = "python3 "
 
-# ,stderr=subprocess.STDOUT
-#  stderr=subprocess.STDOUT,
+
 #function to run python files
 def runPy(file,data):
     print("Entered runpy")
@@ -24,6 +26,9 @@ def runPy(file,data):
     proc = subprocess.Popen(py+ file+' "'+data+'"', stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
 
     return str(proc.communicate()[0],"utf-8")
+
+# def runHTML(file):
+
 
 #function to run php files
 def runPHP(file,data):
