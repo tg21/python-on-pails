@@ -1,8 +1,11 @@
+### this file is here to prototype new features
+### you can ignore this file, it's a part-timer.
+
 file = ""
 with open("www/alpha.html","r") as f:
     file = f.read()
 
-print(file)
+# print(file.index("<py>"))
 from html.parser import HTMLParser
 import os
 import subprocess
@@ -17,18 +20,21 @@ class MyHTMLParser(HTMLParser):
         self.sdata = []
     def handle_starttag(self, tag, attrs):
         if tag=="py":
+            # print("start --> ",HTMLParser.getpos(self))
             self.recording =1
     
     def handle_endtag(self, tag):
         if tag=="py":
+            # print("end --> ",HTMLParser.getpos(self))
             self.recording = 0
 
     def handle_data(self,data):
         if self.recording:
+            # print("data --> ",HTMLParser.getpos(self))
             place = data
             data = data.split("\n")
             data = list(filter(lambda x:x.strip()!="",data))
-            print("Encountered some data  :", data)
+            # print("Encountered some data  :", data)
             min_tabs = 999
             for i in range(0,len(data)):
                 tabs = len(data[i]) - len(data[i].lstrip(' '))
@@ -41,10 +47,11 @@ class MyHTMLParser(HTMLParser):
             temp.close()
             proc = subprocess.Popen(py+" temp.py",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
             res = (str(proc.communicate()[0],"utf-8"))
-            print(res)
+            # print(res)
             global file 
             file = file.replace(place,res.rstrip())
-
+            # return file
+    # def getpos():
 
 parser = MyHTMLParser()
 parser.feed(file)
