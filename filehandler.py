@@ -3,11 +3,51 @@
 from pathlib import Path
 import os
 import subprocess
-# from html.parser import HTMLParser
-# import json
+from html.parser import HTMLParser
 
+### global variables
+processed_file = ""
+
+
+### class to process inline python
+class MyHTMLParser(HTMLParser):
+    def __init__(self):
+        HTMLParser.__init__(self)
+        self.recording = 0 
+        self.sdata = []
+    def handle_starttag(self, tag, attrs):
+        if tag=="py":
+            self.recording =1
+    
+    def handle_endtag(self, tag):
+        if tag=="py":
+            self.recording = 0
+
+    def handle_data(self,data):
+        if self.recording:
+            place = data
+            data = data.split("\n")
+            data = list(filter(lambda x:x.strip()!="",data))
+            min_tabs = 999
+            for i in range(0,len(data)):
+                tabs = len(data[i]) - len(data[i].lstrip(' '))
+                if(tabs<min_tabs):
+                    min_tabs = tabs
+            temp = open("temp.py","w")
+            for i in range(0,len(data)):
+                data[i] = data[i].rstrip(' ')[min_tabs:]
+                temp.write(data[i]+"\n")
+            temp.close()
+            proc = subprocess.Popen(py+" temp.py",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+            res = (str(proc.communicate()[0],"utf-8"))
+            global processed_file 
+            processed_file = processed_file.replace(place,res.rstrip())
+
+
+### most important function
 def testfun():
     print("hello there")
+
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -22,12 +62,19 @@ def runPy(file,data):
     print("Entered runpy")
     data = data.replace("'","\'")
     data = data.replace('"','\"')
-    # proc = subprocess.Popen([py, file,'"'+data+'"'], stdout=subprocess.PIPE,shell=True)
     proc = subprocess.Popen(py+ file+' "'+data+'"', stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
 
     return str(proc.communicate()[0],"utf-8")
 
-# def runHTML(file):
+### function to handle html files with inline python
+def runHTML(file):
+    global processed_file
+    ## not using read-text function here because not reading as binary here.
+    with open(file,"r") as f:
+        processed_file = f.read()
+    parser = MyHTMLParser()
+    parser.feed(processed_file)
+    return processed_file
 
 
 #function to run php files
@@ -64,7 +111,6 @@ def showDir(dirPath):
         
      #listing directory content   
     else:
-        #mimType = "text/html"
         fileLinks = "<ul>"
         if dirPath.endswith("/"):
             for i in range(len(files)):         
@@ -97,6 +143,9 @@ def response(requested_file,data,mimeTypes):
                 mimeType = "text/html"
             elif extension == ".php":
                 content = runPHP(requested_file,data)
+                mimeType = "text/html"
+            elif extension == ".html":
+                content = runHTML(requested_file)
                 mimeType = "text/html"
             else:
                 content = read_text(requested_file)
