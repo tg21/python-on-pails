@@ -24,14 +24,16 @@ same case exists with flask too. So, I wanted to make a framework anybody who ha
 ## Changelog
 - fixed a bug where python files were not being served on unix based systems.
 - Added a feature to serve files from anywhere.
+- Server can now process inline-python code from HTML files.
 - added some new bugs to hunt later.
+- made commits with "unhelpful" messages.
 
 ### Installation
 PyOP requires [python3](https://www.python.org/) to run.
 
 add your project files in www folder.\
 run server.py to start the server.\
-all files presnent in www folder will be served to client.\
+all files presnent in www folder will be served to client.
 
 
 ```sh
@@ -46,7 +48,7 @@ do the same as above but at your own risk.
 ```
 
 #### To output HTML from python file
-write whatever you want to be shown on web in print() statement. \
+write whatever you want to be shown on web in print() statement. 
 ``` python
 # print files of a folder as follow
 print("""
@@ -58,6 +60,29 @@ print("""
 from os import listdir
 print(listdir())
 print("foo bar")
+```
+
+#### To output Python from HTML file
+write whatever you want to be shown on web in print() statement. 
+``` HTML
+<html>
+    <body>
+        <!-- generete random numbeers in HTML as follow
+            put python code within <py>...</py> block
+            I encourage you to use on-liners or lambda function,
+            otherwise properly indent your code (like I have done here).
+            that's it now when you request this html file, its python code will be processed first.
+         -->
+            <h1><py> print("hello there") </py></h1>
+            <p>
+                <py>
+                    import random
+                    print("hello there<br>general kenobi "+str(random.randint(1,101)))
+                </py>
+            </p>
+        </form>
+    </body>
+</html>
 ```
 
 ## Also, a new feature
@@ -87,13 +112,13 @@ Help is always welcome.
 
 ### TODOs
 
- - Add easy express links feature(Now added)
+ - Add easy express links feature (DONE).
  - Add a GUI for to start and manage server
  - package for pypi
  - Easy TLS encryption
  - Make things like cookies and $_SERVER kind of thing available
- - find and better name and logo for this project.
- - Make server understand inline python code from html files.
+ - find and better name and logo for this project(LOGO done and love project name so not gonna change it now).
+ - Make server understand inline python code from html files (DONE).
 
 License
 ----
