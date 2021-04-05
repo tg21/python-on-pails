@@ -3,17 +3,18 @@
 import sys
 import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
-
+import json
 dir_path = (str(os.path.dirname(os.path.realpath(__file__))) + "/")
 # sys.path.insert(0, '{}/server'.format(dir_path))
 from server.settings import config
 from server.responseHandler import ResponseHandler
-
+from server.misc import jsonify,dict2obj
 # sys.path.insert(0, '{}/{}'.format(dir_path,config.views))
 # sys.path.insert(0, '{}/{}'.format(dir_path,config.controllers))
 
 from mvc.views.views import views
 from mvc.controllers.routes import routes
+
 
 # from filehandler import response
 # from extraFunctions import initials
@@ -42,26 +43,43 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         else:
             data = str(self.rfile.read(
                 int(self.headers['Content-Length'])), 'utf-8')
-
-        data = data+"&self="+str(id(self))
-
-
-
+        #t = json.detect_encoding(data)
         
+
+        if(data != None and data!=""):
+            try:
+                data = json.loads(data)
+            except Exception as e:
+                data = jsonify(data)
+
+        # data = data+"&self="+str(id(self))
+
+        data = dict2obj({
+            'method':rtype,
+            'data':data,
+        })
+
+        #checking routes in views.py
         route = views.get(queryString[0], False)
         if route:
             if(callable(route)):
-                #TODO
                 response = ResponseHandler(route,'staticFunction',None).respond()
             elif(type(route) is str):
                 request = dir_path+config.static+route
                 response = ResponseHandler(request,'static',None).respond()
         else:
-            #TODO:call more functions from response handler
+            #checking routes in routes.py(controllers)
             route = routes.get(queryString[0], False)
             if route:
-                #TODO
-                request = route
+                if(type(route) == dict):
+                    route,inputType,outputType = route.get('method'),route.get('input',object),route.get('output',object)
+                if(callable(route)):
+                    response = ResponseHandler(route,'controllerFunction',data).respond()
+                elif(type(route) == str and route.endswith('.py')):
+                    response = ResponseHandler(route,'controllerFile',data).respond()
+                else:
+                    #TODO:better exception here
+                    raise Exception
             else:
                 request = dir_path+config.static+queryString[0]
                 response = ResponseHandler(request,'static',None).respond()

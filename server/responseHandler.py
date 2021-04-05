@@ -1,43 +1,119 @@
 from server.settings import config
+from html.parser import HTMLParser
+from server.mimeTypes import mimeTypes
 class ResponseHandler:
-
-    def _serveStatic(self,request):
-        return _read_text(request)
-
-    def _serverStaticPythonFunction(self,request):
-        pass
-    
-    def _serverStaticPythonFile(self,request):
-        pass
-    
-    def _executeAndServeFunction(self,request,input):
-        pass
-
-    def _executeAndServeFunction(self,request,input):
-        pass
-
-    def respond(self):
-        try:
-            if(self.requestType == 'static'):
-                self.response = _ResoponseClass(self._serveStatic(self.request),200,'text/html')
-        except Exception as e:
-            if config.logging:
-                print(e)
-            self.response = _ResoponseClass(str(e),500,'text/html')
-        return self.response
 
     def __init__(self,request,requestType,input):
         self.request = request
         self.requestType = requestType
         self.input = input
+
+    #for views
+    def _serveStatic(self,request):
+        return _read_text(request)
+
+    def _serverStaticPythonFunction(self,request):
+        return request()
+    
+    def _serverStaticPythonFile(self,request):
+        return _run_python_file(request)
+    
+    def _serverStaticPyHtml(self,request):
+        return _processPyHtml(request)
+
+    #for controllers
+    def _executeAndServeFunction(self,request,input):
+        return request(input)
+
+    def _executeAndServeFile(self,request,input):
+        pass
+
+    def respond(self):
+        try:
+            if(self.requestType == 'static'):
+                if(self.request.endswith('.html')):
+                    self.response = _ResoponseClass(self._serveStatic(self.request),200,'text/html')
+                elif(self.request.endswith('.py')):
+                    self.response = _ResoponseClass(self._serverStaticPythonFile(self.request),200,'text/html')
+                elif(self.request.endswith('.pyhtml')):
+                    self.response = _ResoponseClass(self._serverStaticPyHtml(self.request),200,'text/html')
+                else:
+                    self.response = _ResoponseClass(self._serveStatic(self.request),200,mimeTypes.get('.'+self.request.split('.')[-1],'application/octet-stream'))            
+            elif(self.requestType == 'staticFunction'):
+                self.response = _ResoponseClass(self._serverStaticPythonFunction(self.request),200,'text/html')
+            elif(self.requestType == 'controllerFunction'):
+                self.response = _ResoponseClass(self._executeAndServeFunction(self.request,self.input),200,'text/html')
+            elif(self.requestType == 'controllerFile'):
+                self.response = _ResoponseClass(self._serverStaticPythonFunction(self.request),200,'text/html')
+            else:
+                raise BaseException
+        except Exception as e:
+            if config.logging:
+                print(e)
+            self.response = _ResoponseClass(type(e).__name__,500,'text/html')
+        return self.response
        
 
 def _read_text(file):
     with open(file,"rb") as nfile:
         return nfile.read()
+
+def _run_python_file(file):
+    ## not using read-text function here because not reading as binary here.
+    readFile:str
+    with open(file,"r") as f:
+        readFile = f.read()
+    exec(readFile,globals())
+    return main()
+
+def _processPyHtml(file):
+    ## not using read-text function here because not reading as binary here.
+    readFile:str
+    with open(file,"r") as f:
+        readFile = f.read()
+    parser = MyHTMLParser(readFile)
+    parser.feed(readFile)
+    return parser.processed_file
+
+### class to process inline python
+class MyHTMLParser(HTMLParser):
+    def __init__(self,file):
+        HTMLParser.__init__(self)
+        self.recording = 0
+        self.processed_file = file
+        # self.sdata = []
+    def handle_starttag(self, tag, attrs):
+        if tag=="py":
+            self.recording += 1
+    
+    def handle_endtag(self, tag):
+        if tag=="py":
+            self.recording -= 1
+
+    def handle_data(self,data):
+        if self.recording == 1:
+            place = data
+            data = data.split("\n")
+            data = list(filter(lambda x:x.strip()!="",data))
+            min_tabs = 999
+            for i in range(0,len(data)):
+                tabs = len(data[i]) - len(data[i].lstrip(' '))
+                if(tabs<min_tabs):
+                    min_tabs = tabs
+            # temp = open("temp.py","w")
+            lcla = {}
+            toExec = "def execFun():\n"
+            for i in range(0,len(data)):
+                toExec += "\t"+data[i].rstrip(' ')[min_tabs:]+"\n"
+            exec(toExec,globals())
+            a = [globals(),locals()]
+            res = execFun()
+            self.processed_file = self.processed_file.replace(place,res.rstrip())
     
 class _ResoponseClass:
     def __init__(self,response,responseCode,mimeType):
         self.content = response
         self.responseCode = responseCode
         self.mimeType = mimeType
+
+
