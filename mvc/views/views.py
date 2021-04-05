@@ -8,12 +8,13 @@ results obatined from these files witll be retured as text/html
 remove this placeholder routes and make your own
 =======================================================================
 """
-def properResponseForHelloThere():
+def properResponseToHelloThere():
     return "General Kenobi !"
 views = {
-    '/helloThere': properResponseForHelloThere,
+    '/helloThere': properResponseToHelloThere,
     '/hello': 'html/welcome.html',
-    '/': 'html/welcome.html',#this url is relative
+    '/': 'html/welcome.html',#this url is relative,
+    '/inline':'html/inline.pyhtml',
 }
 
 

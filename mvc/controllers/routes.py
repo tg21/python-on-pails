@@ -10,7 +10,8 @@ results obatined from these files witll be retured as text/html
 remove this placeholder routes and make your own
 =================================================================================================
 """
-
+from mvc.controllers.services import greet
+import mvc.models.inputModels as md
 # how files are executed
 # x = """
 # def main(n):
@@ -24,12 +25,15 @@ remove this placeholder routes and make your own
 # class req:
 #     data = dat
 # from services.greet import main
+
+def sum(req):
+    a,b = req.data.a,req.data.b
+    return a+b
+
 routes = {
-    '/sum': sum,
-    '/greet': sum,
+    '/sum': {'action':sum,'input':md.sumInputModel,'output':int},
+    '/greet': greet.main,
 }
 
-# def sum(req):
-#     a,b = req.data['a'],req.data['b']
-#     return a+b
+
 #print(services.greet.main(req))
