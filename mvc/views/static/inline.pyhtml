@@ -1,0 +1,18 @@
+<html>
+    <body>
+    <h3>Sum of Two Numbers</h3>
+        <form method="POST" action="in.py">
+            FirstName:<input name="firstname" id="sup" type="text"><br>
+            LastName:<input name="lastname" id="sups" type="text"><br>
+            <input id="sub" type="submit">
+            <h1><py> return("hello there") </py></h1>
+            <p>
+                <py>
+                    import random
+                    return("hello there\ngeneral kenobi "+str(random.randint(1,101)))
+                </py>
+            </p>
+
+        </form>
+    </body>
+</html>
