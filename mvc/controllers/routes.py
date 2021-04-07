@@ -5,7 +5,7 @@ Specify routes in this file to handle API calls.
 give python file or python functions for their corresponding routes.
 python files must defin main(req) method
 every function or python file should accept atleast one parameter(req object)
-results obatined from these files witll be retured as text/html
+results obatined from these files will be serialized and retured as application/json
 *************************************************************************************************
 remove this placeholder routes and make your own
 =================================================================================================
@@ -27,7 +27,8 @@ import mvc.models.inputModels as md
 # from services.greet import main
 
 def sum(req):
-    a,b = req.data.a,req.data.b
+    data = req.data
+    a,b = data.a,data.b
     return a+b
 
 routes = {
