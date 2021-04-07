@@ -8,7 +8,7 @@ dir_path = (str(os.path.dirname(os.path.realpath(__file__))) + "/")
 # sys.path.insert(0, '{}/server'.format(dir_path))
 from server.settings import config
 from server.responseHandler import ResponseHandler
-from server.misc import jsonify,dict2obj
+from server.misc import jsonify,dict2obj,parseJsonToClass,Req
 # sys.path.insert(0, '{}/{}'.format(dir_path,config.views))
 # sys.path.insert(0, '{}/{}'.format(dir_path,config.controllers))
 
@@ -29,13 +29,9 @@ from mvc.controllers.routes import routes
 
 class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
-    def GETPOST(self, rtype):  # rtype stands for request type
-        # print("obj addr after int is :: ",id(self),"==>",int(str(id(self))))
-        # print("Client= ",self.client_address)
-        response:ResponseHandler = None
+    def getRequestData(self,model):
         queryString = self.path.split("?")
-
-        if(rtype == "get"):
+        if(self.command == "GET"):
             if len(queryString) > 1:
                 data = str(queryString[1])
             else:
@@ -43,22 +39,25 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         else:
             data = str(self.rfile.read(
                 int(self.headers['Content-Length'])), 'utf-8')
-        #t = json.detect_encoding(data)
-        
-
         if(data != None and data!=""):
             try:
                 data = json.loads(data)
             except Exception as e:
                 data = jsonify(data)
+        data = parseJsonToClass(data,model)
+        # data = dict2obj({
+        #     'method':rtype,
+        #     'data':data,
+        # })
+        return Req(self.command,data)
 
-        # data = data+"&self="+str(id(self))
+    def GETPOST(self):  # rtype stands for request type
+        # print("obj addr after int is :: ",id(self),"==>",int(str(id(self))))
+        # print("Client= ",self.client_address)
+        response:ResponseHandler = None
+        queryString = self.path.split("?")
 
-        data = dict2obj({
-            'method':rtype,
-            'data':data,
-        })
-
+        
         #checking routes in views.py
         route = views.get(queryString[0], False)
         if route:
@@ -72,11 +71,11 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
             route = routes.get(queryString[0], False)
             if route:
                 if(type(route) == dict):
-                    route,inputType,outputType = route.get('method'),route.get('input',object),route.get('output',object)
+                    route,inputModel,outputModel = route.get('action'),route.get('input',object),route.get('output',object)
                 if(callable(route)):
-                    response = ResponseHandler(route,'controllerFunction',data).respond()
+                    response = ResponseHandler(route,'controllerFunction',self.getRequestData(inputModel)).respond()
                 elif(type(route) == str and route.endswith('.py')):
-                    response = ResponseHandler(route,'controllerFile',data).respond()
+                    response = ResponseHandler(route,'controllerFile',self.getRequestData(inputModel)).respond()
                 else:
                     #TODO:better exception here
                     raise Exception
@@ -89,19 +88,25 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.send_response(response.responseCode)
         self.send_header('content-type', response.mimeType)
         self.end_headers()
-        try:
-            self.wfile.write(response.content)
-        except TypeError:
-            self.wfile.write(bytes(response.content, 'utf-8'))
-        return
+        if(type(response.content) is not bytes):
+            if(type(response.content) is not str):
+                response.content = bytes(str(response.content), 'utf-8')
+            else:
+                response.content = bytes(response.content, 'utf-8')
+        self.wfile.write(response.content)
+        # try:
+        #     self.wfile.write(response.content)
+        # except TypeError:
+        #     self.wfile.write(bytes(response.content, 'utf-8'))
+        # return
 
     # GET
     def do_GET(self):
-        self.GETPOST("get")
+        self.GETPOST()
         return
 
     def do_POST(self):
-        self.GETPOST("post")
+        self.GETPOST()
         return
 
 
