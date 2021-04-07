@@ -42,9 +42,9 @@ class ResponseHandler:
             elif(self.requestType == 'staticFunction'):
                 self.response = _ResoponseClass(self._serverStaticPythonFunction(self.request),200,'text/html')
             elif(self.requestType == 'controllerFunction'):
-                self.response = _ResoponseClass(self._executeAndServeFunction(self.request,self.input),200,'text/html')
+                self.response = _ResoponseClass(self._executeAndServeFunction(self.request,self.input),200,'application/json')
             elif(self.requestType == 'controllerFile'):
-                self.response = _ResoponseClass(self._serverStaticPythonFunction(self.request),200,'text/html')
+                self.response = _ResoponseClass(self._executeAndServeFile(self.request),200,'application/json')
             else:
                 raise BaseException
         except Exception as e:
