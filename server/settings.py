@@ -19,5 +19,10 @@ class config:
     static='mvc/views/static/'
     logging=False
 
+    enableTLS = False
+    PATH_TLS_KEY_FILE = None #give path to key file here (string)
+    PATH_TLS_CERT_FILE = None #give path to CERT file here (string)
+
+
 
 

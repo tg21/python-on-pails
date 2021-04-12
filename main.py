@@ -1,8 +1,6 @@
-
-
 import sys
 import os
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer # ,HTTPServer,
 import json
 dir_path = (str(os.path.dirname(os.path.realpath(__file__))) + "/")
 # sys.path.insert(0, '{}/server'.format(dir_path))
@@ -14,6 +12,7 @@ from server.misc import jsonify,dict2obj,parseJsonToClass,Req
 
 from mvc.views.views import views
 from mvc.controllers.routes import routes
+import ssl
 
 
 # from filehandler import response
@@ -27,7 +26,7 @@ from mvc.controllers.routes import routes
 #         project_dir = ""
 
 
-class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
+class PyOPSever(BaseHTTPRequestHandler):
 
     def getRequestData(self,model):
         queryString = self.path.split("?")
@@ -113,9 +112,15 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 def run():
     print("Starting server ...")
     server_address = (config.host, config.port)
-    httpd = HTTPServer(server_address, testHTTPServer_RequestHandler)
+    #httpd = HTTPServer(server_address, PyOPSever)
+    httpd = ThreadingHTTPServer(server_address, PyOPSever)
     print("running server at ", server_address)
     print("WD :- ", dir_path + config.static)
+    if config.enableTLS:
+        httpd.socket = ssl.wrap_socket (httpd.socket, 
+            keyfile= config.PATH_TLS_KEY_FILE, 
+            certfile= config.PATH_TLS_CERT_FILE, server_side=True)
+        print("Listening Securely")
     httpd.serve_forever()
 
 
