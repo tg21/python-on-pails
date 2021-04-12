@@ -41,6 +41,13 @@ def isSequence(ob):
     return False
 
 
+## to get types and names of parameters NOTE: won't work without types
+# a.__annotations__
+# > {'b': <class 'int'>, 'c': <class 'int'>}
+
+# just names of parameters
+# a.__code__.co_varnames
+
 def parseJsonToClass(input,model):
     output = None
     try:
