@@ -31,8 +31,12 @@ def sum(req):
     a,b = data.a,data.b
     return a+b
 
+def sumCustom(req):
+    data = req.data
+
 routes = {
-    '/sum': {'action':sum,'input':md.sumInputModel,'output':int},
+    '/sum': {'action':sum,'input':md.sumInputModel},
+    '/sumCustom': {'action':sum,'input':md.sumInputModel,'customResponse': True},
     '/greet': greet.main,
 }
 
