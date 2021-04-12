@@ -12,9 +12,9 @@ def properResponseToHelloThere():
     return "General Kenobi !"
 views = {
     '/helloThere': properResponseToHelloThere,
-    '/hello': 'html/welcome.html',
-    '/': 'html/welcome.html',#this url is relative,
-    '/inline':'html/inline.pyhtml',
+    '/hello': 'welcome.html',
+    '/': 'welcome.html',#this url is relative,
+    '/inline':'inline.pyhtml',
 }
 
 
