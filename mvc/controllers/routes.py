@@ -33,10 +33,17 @@ def sum(req):
 
 def sumCustom(req):
     data = req.data
+    res = data.a + data.b + data.c + data.d
+    res = "<h1>{}<h1>".format(res)
+    return {
+        'content' : res,
+        'mimeType' : 'text/html',
+        'code': 200,
+    }
 
 routes = {
     '/sum': {'action':sum,'input':md.sumInputModel},
-    '/sumCustom': {'action':sum,'input':md.sumInputModel,'customResponse': True},
+    '/sumCustom': {'action':sumCustom,'input':md.sumInputModel,'customResponse': True},
     '/greet': greet.main,
 }
 

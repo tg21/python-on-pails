@@ -44,7 +44,7 @@ all files presnent in www folder will be served to client.
 
 ```sh
 $ cd python-on-pails
-$ sudo python3 server.py
+$ sudo python3 main.py
 ```
 
 For production environments...

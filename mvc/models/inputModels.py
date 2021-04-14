@@ -1,5 +1,5 @@
 def square(input):
-    return input*input
+    return int(input)*int(input)
 class sumInputModel:
     a = int
     b = int

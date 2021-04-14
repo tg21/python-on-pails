@@ -70,11 +70,11 @@ class PyOPSever(BaseHTTPRequestHandler):
             route = routes.get(queryString[0], False)
             if route:
                 if(type(route) == dict):
-                    route,inputModel,outputModel = route.get('action'),route.get('input',object),route.get('output',object)
+                    route,inputModel,customResponse = route.get('action'),route.get('input',object),route.get('customResponse',None)
                 if(callable(route)):
-                    response = ResponseHandler(route,'controllerFunction',self.getRequestData(inputModel)).respond()
+                    response = ResponseHandler(route,'controllerFunction',self.getRequestData(inputModel),customResponse).respond()
                 elif(type(route) == str and route.endswith('.py')):
-                    response = ResponseHandler(route,'controllerFile',self.getRequestData(inputModel)).respond()
+                    response = ResponseHandler(route,'controllerFile',self.getRequestData(inputModel),customResponse).respond()
                 else:
                     #TODO:better exception here
                     raise Exception

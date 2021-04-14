@@ -3,10 +3,11 @@ from html.parser import HTMLParser
 from server.mimeTypes import mimeTypes
 class ResponseHandler:
 
-    def __init__(self,request,requestType,input):
+    def __init__(self,request,requestType,reqData,customResponse=None):
         self.request = request
         self.requestType = requestType
-        self.input = input
+        self.reqData = reqData
+        self.customResponse = customResponse
 
     #for views
     def _serveStatic(self,request):
@@ -22,10 +23,10 @@ class ResponseHandler:
         return _processPyHtml(request)
 
     #for controllers
-    def _executeAndServeFunction(self,request,input):
-        return request(input)
+    def _executeAndServeFunction(self,request,reqData):
+        return request(reqData)
 
-    def _executeAndServeFile(self,request,input):
+    def _executeAndServeFile(self,request,reqData):
         pass
 
     def respond(self):
@@ -42,7 +43,11 @@ class ResponseHandler:
             elif(self.requestType == 'staticFunction'):
                 self.response = _ResoponseClass(self._serverStaticPythonFunction(self.request),200,'text/html')
             elif(self.requestType == 'controllerFunction'):
-                self.response = _ResoponseClass(self._executeAndServeFunction(self.request,self.input),200,'application/json')
+                if(self.customResponse == None):
+                    self.response = _ResoponseClass(self._executeAndServeFunction(self.request,self.reqData),200,'application/json')
+                else:
+                    res = self._executeAndServeFunction(self.request,self.reqData)
+                    self.response = _ResoponseClass(res.get('content'),res.get('code',200),res.get('mimeType','application/json'))
             elif(self.requestType == 'controllerFile'):
                 self.response = _ResoponseClass(self._executeAndServeFile(self.request),200,'application/json')
             else:
