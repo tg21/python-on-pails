@@ -31,6 +31,9 @@ def sumNum(req):
     a,b = data.a,data.b
     return a+b
 
+def sumNum1(a:int,b:int):
+    return a+b
+
 def sumCustom(req):
     data = req.data
     res = data.a + data.b + data.c + data.d
@@ -52,7 +55,7 @@ postRoutes = {
 
 }
 getRoutes = {
-    '/sum': {'action':sumNum,'input':md.sumInputModel},
+    '/sum': sumNum1,
     '/sumCustom': {'action':sumCustom,'input':md.sumInputModel,'customResponse': True},
     '/product': typeCastedProduct,
     '/greet': greet.main,
