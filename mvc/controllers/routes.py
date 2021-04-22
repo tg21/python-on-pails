@@ -26,7 +26,7 @@ import mvc.models.inputModels as md
 #     data = dat
 # from services.greet import main
 
-def sum(req):
+def sumNum(req):
     data = req.data
     a,b = data.a,data.b
     return a+b
@@ -41,10 +41,22 @@ def sumCustom(req):
         'code': 200,
     }
 
-routes = {
-    '/sum': {'action':sum,'input':md.sumInputModel},
+def typeCastedProduct(a:int,b:int,c:str,d:[int]):
+    return(c + " :-> " + str((a*b)/sum(d)))
+
+postRoutes = {
+    '/sum': {'action':sumNum,'input':md.sumInputModel},
     '/sumCustom': {'action':sumCustom,'input':md.sumInputModel,'customResponse': True},
+    '/product': typeCastedProduct,
     '/greet': greet.main,
+
+}
+getRoutes = {
+    '/sum': {'action':sumNum,'input':md.sumInputModel},
+    '/sumCustom': {'action':sumCustom,'input':md.sumInputModel,'customResponse': True},
+    '/product': typeCastedProduct,
+    '/greet': greet.main,
+
 }
 
 

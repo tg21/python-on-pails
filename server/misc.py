@@ -36,8 +36,9 @@ def dict2obj(d):
 
 
 def isSequence(ob):
-    if(type(ob) == list or type(ob) == tuple or type(ob) == set or type(ob) == frozenset):
-        True
+    a = type(ob)
+    if(type(ob) is list or type(ob) is tuple or type(ob) is set or type(ob) is frozenset):
+        return True
     return False
 
 
@@ -53,11 +54,11 @@ def parseJsonToClass(input,model):
     try:
         if isSequence(model) and isSequence(input):
             output = []
-            for i in range(len(model)):
-                if(i > len(input) - 1):
-                    obj = None
-                else:
-                    obj = parseJsonToClass(input[i],model[i])
+            for i in range(len(input)):
+                # if(i > len(input) - 1):
+                #     obj = None
+                # else:
+                obj = parseJsonToClass(input[i],model[0])
                 output.append(obj)
         elif type(model) is type and type(input) is dict:
             output = mapDictToClass(input,model)

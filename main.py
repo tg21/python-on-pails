@@ -11,7 +11,7 @@ from server.misc import jsonify,dict2obj,parseJsonToClass,Req
 # sys.path.insert(0, '{}/{}'.format(dir_path,config.controllers))
 
 from mvc.views.views import views
-from mvc.controllers.routes import routes
+from mvc.controllers.routes import getRoutes,postRoutes
 import ssl
 
 
@@ -28,7 +28,7 @@ import ssl
 
 class PyOPSever(BaseHTTPRequestHandler):
 
-    def getRequestData(self,model):
+    def FormatRequestData(self,model,types=None):
         queryString = self.path.split("?")
         if(self.command == "GET"):
             if len(queryString) > 1:
@@ -36,14 +36,23 @@ class PyOPSever(BaseHTTPRequestHandler):
             else:
                 data = ""
         else:
-            data = str(self.rfile.read(
-                int(self.headers['Content-Length'])), 'utf-8')
+            data = str(self.rfile.read(int(self.headers['Content-Length'])), 'utf-8')
         if(data != None and data!=""):
             try:
                 data = json.loads(data)
-            except Exception as e:
+            except Exception:
                 data = jsonify(data)
-        data = parseJsonToClass(data,model)
+        if types is None:
+            data = parseJsonToClass(data,model)
+        else:
+            output = []
+            for i in model:
+                tp = types.get(i,None)
+                if tp is None:
+                    output.append(data[i])
+                else:
+                    output.append(parseJsonToClass(data[i],tp))
+            return output
         # data = dict2obj({
         #     'method':rtype,
         #     'data':data,
@@ -67,14 +76,24 @@ class PyOPSever(BaseHTTPRequestHandler):
                 response = ResponseHandler(request,'static',None).respond()
         else:
             #checking routes in routes.py(controllers)
-            route = routes.get(queryString[0], False)
+            if(self.command == "GET"):
+                route =  getRoutes.get(queryString[0], False)
+            else:
+                route =  postRoutes.get(queryString[0], False)
             if route:
+                inputModel = None
+                customResponse = None
                 if(type(route) == dict):
-                    route,inputModel,customResponse = route.get('action'),route.get('input',object),route.get('customResponse',None)
+                    route,inputModel,customResponse = route.get('action'),route.get('input',None),route.get('customResponse',None)
                 if(callable(route)):
-                    response = ResponseHandler(route,'controllerFunction',self.getRequestData(inputModel),customResponse).respond()
+                    if inputModel is None:
+                        params = route.__code__.co_varnames
+                        types = route.__annotations__
+                        response = ResponseHandler(route,'controllerFunction',self.FormatRequestData(params,types),customResponse,unpack=True).respond()
+                    else:
+                        response = ResponseHandler(route,'controllerFunction',self.FormatRequestData(inputModel),customResponse,unpack=False).respond()
                 elif(type(route) == str and route.endswith('.py')):
-                    response = ResponseHandler(route,'controllerFile',self.getRequestData(inputModel),customResponse).respond()
+                    response = ResponseHandler(route,'controllerFile',self.FormatRequestData(inputModel),customResponse).respond()
                 else:
                     #TODO:better exception here
                     raise Exception

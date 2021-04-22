@@ -3,11 +3,12 @@ from html.parser import HTMLParser
 from server.mimeTypes import mimeTypes
 class ResponseHandler:
 
-    def __init__(self,request,requestType,reqData,customResponse=None):
+    def __init__(self,request,requestType,reqData,customResponse=None,unpack=None):
         self.request = request
         self.requestType = requestType
         self.reqData = reqData
         self.customResponse = customResponse
+        self.unpack = unpack
 
     #for views
     def _serveStatic(self,request):
@@ -23,8 +24,11 @@ class ResponseHandler:
         return _processPyHtml(request)
 
     #for controllers
-    def _executeAndServeFunction(self,request,reqData):
-        return request(reqData)
+    def _executeAndServeFunction(self,request,reqData,unpack):
+        if unpack:
+            return request(*reqData)
+        else:
+            return request(reqData)
 
     def _executeAndServeFile(self,request,reqData):
         pass
@@ -44,9 +48,9 @@ class ResponseHandler:
                 self.response = _ResoponseClass(self._serverStaticPythonFunction(self.request),200,'text/html')
             elif(self.requestType == 'controllerFunction'):
                 if(self.customResponse == None):
-                    self.response = _ResoponseClass(self._executeAndServeFunction(self.request,self.reqData),200,'application/json')
+                    self.response = _ResoponseClass(self._executeAndServeFunction(self.request,self.reqData,self.unpack),200,'application/json')
                 else:
-                    res = self._executeAndServeFunction(self.request,self.reqData)
+                    res = self._executeAndServeFunction(self.request,self.reqData,self.unpack)
                     self.response = _ResoponseClass(res.get('content'),res.get('code',200),res.get('mimeType','application/json'))
             elif(self.requestType == 'controllerFile'):
                 self.response = _ResoponseClass(self._executeAndServeFile(self.request),200,'application/json')
