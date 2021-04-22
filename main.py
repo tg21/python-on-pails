@@ -101,8 +101,6 @@ class PyOPSever(BaseHTTPRequestHandler):
                 request = dir_path+config.static+queryString[0]
                 response = ResponseHandler(request,'static',None).respond()
 
-        
-        #content, mimeType, errorCode = response(requested_file, data, mimeTypes)
         self.send_response(response.responseCode)
         self.send_header('content-type', response.mimeType)
         self.end_headers()
@@ -112,11 +110,6 @@ class PyOPSever(BaseHTTPRequestHandler):
             else:
                 response.content = bytes(response.content, 'utf-8')
         self.wfile.write(response.content)
-        # try:
-        #     self.wfile.write(response.content)
-        # except TypeError:
-        #     self.wfile.write(bytes(response.content, 'utf-8'))
-        # return
 
     # GET
     def do_GET(self):
