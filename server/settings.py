@@ -1,3 +1,6 @@
+class server_info:
+    server_name = "python-on-pails"
+    server_version = "2.0"
 class project_info:
     name = 'Sample_Name'
     version= 1.0
