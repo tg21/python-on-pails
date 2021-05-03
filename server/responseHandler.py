@@ -110,13 +110,13 @@ class MyHTMLParser(HTMLParser):
                 if(tabs<min_tabs):
                     min_tabs = tabs
             # temp = open("temp.py","w")
-            lcla = {}
+            lcl = {'execFun':None}
             toExec = "def execFun():\n"
             for i in range(0,len(data)):
                 toExec += "\t"+data[i].rstrip(' ')[min_tabs:]+"\n"
-            exec(toExec,globals())
-            a = [globals(),locals()]
-            res = execFun()
+            exec(toExec,{},lcl)
+            #a = [globals(),locals()]
+            res = lcl['execFun']()
             self.processed_file = self.processed_file.replace(place,res.rstrip())
     
 class _ResoponseClass:
