@@ -13,6 +13,8 @@ from server.misc import jsonify,dict2obj,parseJsonToClass,Req
 from mvc.views.views import views
 from mvc.controllers.routes import getRoutes,postRoutes
 import ssl
+from http import HTTPStatus
+import socket
 
 
 # from filehandler import response
@@ -119,6 +121,53 @@ class PyOPSever(BaseHTTPRequestHandler):
             else:
                 response.content = bytes(response.content, 'utf-8')
         self.wfile.write(response.content)
+
+
+    def handle_one_request(self):
+        """Handle a single HTTP request.
+
+        You normally don't need to override this method; see the class
+        __doc__ string for information on how to handle specific HTTP
+        commands such as GET and POST.
+
+        """
+        try:
+            self.raw_requestline = self.rfile.readline(65537)
+            if len(self.raw_requestline) > 65536:
+                self.requestline = ''
+                self.request_version = ''
+                self.command = ''
+                self.send_error(HTTPStatus.REQUEST_URI_TOO_LONG)
+                return
+            if not self.raw_requestline:
+                self.close_connection = True
+                return
+            if not self.parse_request():
+                # An error code has been sent, just exit
+                return
+            mname = 'do_' + self.command
+            if not hasattr(self, mname):
+                if(config.fool_nmap):
+                    self.log_request(200)
+                    self.send_response_only(200)
+                    self.send_header('date',self.date_time_string())
+                    self.send_header('content-type', 'application/json')
+                    self.send_header('server',server_info.server_name + ' '+ server_info.server_version)
+                    self.end_headers()
+                    self.wfile.write(bytes(config.fool_nmap_content))
+                else:
+                    self.send_error(
+                        HTTPStatus.NOT_IMPLEMENTED,
+                        "Unsupported method (%r)" % self.command)
+                return
+            method = getattr(self, mname)
+            method()
+            self.wfile.flush() #actually send the response if not already done.
+        except socket.timeout as e:
+            #a read or a write timed out.  Discard this connection
+            self.log_error("Request timed out: %r", e)
+            self.close_connection = True
+            return
 
     # GET
     def do_GET(self):
