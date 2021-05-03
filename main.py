@@ -4,7 +4,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer # ,HTTPServe
 import json
 dir_path = (str(os.path.dirname(os.path.realpath(__file__))) + "/")
 # sys.path.insert(0, '{}/server'.format(dir_path))
-from server.settings import config
+from server.settings import config,server_info
 from server.responseHandler import ResponseHandler
 from server.misc import jsonify,dict2obj,parseJsonToClass,Req
 # sys.path.insert(0, '{}/{}'.format(dir_path,config.views))
@@ -42,22 +42,27 @@ class PyOPSever(BaseHTTPRequestHandler):
                 data = json.loads(data)
             except Exception:
                 data = jsonify(data)
-        if types is None:
-            data = parseJsonToClass(data,model)
+        if model is not None:
+            if types is None:
+                data = parseJsonToClass(data,model)
+            else:
+                output = []
+                for i in model:
+                    tp = types.get(i,None)
+                    if tp is None:
+                        output.append(data[i])
+                    else:
+                        output.append(parseJsonToClass(data[i],tp))
+                return output
         else:
-            output = []
-            for i in model:
-                tp = types.get(i,None)
-                if tp is None:
-                    output.append(data[i])
-                else:
-                    output.append(parseJsonToClass(data[i],tp))
-            return output
+            # data = jso
+            data = dict2obj(data)
         # data = dict2obj({
         #     'method':rtype,
         #     'data':data,
         # })
-        return Req(self.command,data)
+        return data
+        # return Req(self.command,data)
 
     def GETPOST(self):  # rtype stands for request type
         # print("obj addr after int is :: ",id(self),"==>",int(str(id(self))))
@@ -84,7 +89,7 @@ class PyOPSever(BaseHTTPRequestHandler):
                 inputModel = None
                 customResponse = None
                 if(type(route) == dict):
-                    route,inputModel,customResponse = route.get('action'),route.get('input',None),route.get('customResponse',None)
+                    route,inputModel,customResponse = route.get('action'),route.get('input',object),route.get('customResponse',None)
                 if(callable(route)):
                     if inputModel is None:
                         params = route.__code__.co_varnames
@@ -93,7 +98,8 @@ class PyOPSever(BaseHTTPRequestHandler):
                     else:
                         response = ResponseHandler(route,'controllerFunction',self.FormatRequestData(inputModel),customResponse,unpack=False).respond()
                 elif(type(route) == str and route.endswith('.py')):
-                    response = ResponseHandler(route,'controllerFile',self.FormatRequestData(inputModel),customResponse).respond()
+                    request = dir_path+config.controllers+route
+                    response = ResponseHandler(request,'controllerFile',self.FormatRequestData(inputModel),customResponse).respond()
                 else:
                     #TODO:better exception here
                     raise Exception
@@ -101,8 +107,11 @@ class PyOPSever(BaseHTTPRequestHandler):
                 request = dir_path+config.static+queryString[0]
                 response = ResponseHandler(request,'static',None).respond()
 
-        self.send_response(response.responseCode)
+        self.log_request(response.responseCode)
+        self.send_response_only(response.responseCode)
+        self.send_header('date',self.date_time_string())
         self.send_header('content-type', response.mimeType)
+        self.send_header('server',server_info.server_name + ' '+ server_info.server_version)
         self.end_headers()
         if(type(response.content) is not bytes):
             if(type(response.content) is not str):
@@ -119,7 +128,6 @@ class PyOPSever(BaseHTTPRequestHandler):
     def do_POST(self):
         self.GETPOST()
         return
-
 
 def run():
     print("Starting server ...")
