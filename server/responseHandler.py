@@ -1,6 +1,13 @@
 from server.settings import config
 from html.parser import HTMLParser
 from server.mimeTypes import mimeTypes
+import subprocess
+from os import name as py,getcwd,environ
+import pickle
+if(py=="posix"):
+    py = "python3"
+else:
+    py = "python"
 class ResponseHandler:
 
     def __init__(self,request,requestType,reqData,customResponse=None,unpack=None):
@@ -12,7 +19,7 @@ class ResponseHandler:
 
     #for views
     def _serveStatic(self,request):
-        return _read_text(request)
+        return _read_bin(request)
 
     def _serverStaticPythonFunction(self,request):
         return request()
@@ -31,7 +38,7 @@ class ResponseHandler:
             return request(reqData)
 
     def _executeAndServeFile(self,request,reqData):
-        pass
+        return subprocessPyFile(request,reqData)
 
     def respond(self):
         try:
@@ -53,7 +60,7 @@ class ResponseHandler:
                     res = self._executeAndServeFunction(self.request,self.reqData,self.unpack)
                     self.response = _ResoponseClass(res.get('content'),res.get('code',200),res.get('mimeType','application/json'))
             elif(self.requestType == 'controllerFile'):
-                self.response = _ResoponseClass(self._executeAndServeFile(self.request),200,'application/json')
+                self.response = _ResoponseClass(self._executeAndServeFile(self.request,self.reqData),200,'application/json')
             else:
                 raise BaseException
         except Exception as e:
@@ -63,7 +70,24 @@ class ResponseHandler:
         return self.response
        
 
-def _read_text(file):
+def subprocessPyFile(request,reqData):
+    # return sp.check_output([py, request,reqData])
+    reqData = pickle.dumps(reqData,protocol=pickle.HIGHEST_PROTOCOL)
+    # to access this reqData in file do "from server.helper import reqData"
+    # res =  subprocess.run(['python',request,str(reqData)])#stderr=subprocess.STDOUT,capture_output=True
+    try:
+        en = {
+            **environ,
+            "PYTHONPATH":getcwd()
+        }
+        # "export PYTHONPATH=$PYTHONPATH:{} && ".format(getcwd())+py,
+        res = subprocess.run([py,request,str(reqData)],capture_output=True,env=en)
+    except Exception as e:
+        print(e)
+        raise(e)
+    return res.stdout
+
+def _read_bin(file):
     with open(file,"rb") as nfile:
         return nfile.read()
 
@@ -72,8 +96,9 @@ def _run_python_file(file):
     readFile:str
     with open(file,"r") as f:
         readFile = f.read()
-    exec(readFile,globals())
-    return main()
+    lcl = {'main':None}
+    exec(readFile,{},lcl)
+    return lcl['main']()
 
 def _processPyHtml(file):
     ## not using read-text function here because not reading as binary here.

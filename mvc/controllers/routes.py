@@ -10,7 +10,6 @@ results obatined from these files will be serialized and retured as application/
 remove this placeholder routes and make your own
 =================================================================================================
 """
-from mvc.controllers.services import greet
 import mvc.models.inputModels as md
 # how files are executed
 # x = """
@@ -51,14 +50,14 @@ postRoutes = {
     '/sum': {'action':sumNum,'input':md.sumInputModel},
     '/sumCustom': {'action':sumCustom,'input':md.sumInputModel,'customResponse': True},
     '/product': typeCastedProduct,
-    '/greet': greet.main,
+    '/greet': 'services/greet.py',
 
 }
 getRoutes = {
     '/sum': sumNum1,
     '/sumCustom': {'action':sumCustom,'input':md.sumInputModel,'customResponse': True},
     '/product': typeCastedProduct,
-    '/greet': greet.main,
+    '/greet': 'sercives/greet.py',
 
 }
 

@@ -1,4 +1,4 @@
-from inspect import getmembers
+# from inspect import getmembers
 
 # creates dictionary from query string a=1&b=2&c=sample 
 def jsonify(data:str) -> dict:
@@ -9,6 +9,9 @@ def jsonify(data:str) -> dict:
         if(len(kv) == 2):
             output[kv[0]] = kv[1]
     return output
+
+class C:
+    pass
 
 def dict2obj(d):
       
@@ -21,11 +24,6 @@ def dict2obj(d):
     # directly object is returned
     if not isinstance(d, dict):
            return d
-   
-    # declaring a class
-    class C:
-        pass
-   
     # constructor of the class passed to obj
     obj = C()
    

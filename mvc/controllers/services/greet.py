@@ -1,5 +1,14 @@
-def main(req):
-    return( 
+# import os
+# import sys
+# c = sys.path
+# b = os.getcwd()
+# print(c)
+# print(b)
+# import mvc.models.inputModels as md
+from server.helper import getRequestData
+data = getRequestData()
+def main():
+    print( 
     """
         <html>
             <head>
@@ -11,7 +20,10 @@ def main(req):
             <body>
                 <h1>Hello There</h1>
                 <h3>{}</h3>
+                <h4>Age : {}</h4>
             </body>
         </html>
-    """.format(req.data.name)
+    """.format(data.name,data.age)
     )
+
+main()
