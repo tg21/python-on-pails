@@ -3,44 +3,40 @@
 ## You all have seen Ruby on Rails now get ready for python on pails.
 #### So what is Python on Pails?
 Q: Is it something like Ruby on Rails ,but in python?\
-Answer :No Idea(Maybe). Never used Rails. All I can say is this program is a "framework wannabe".
+Previous Answer : No Idea(Maybe). Never used Rails. All I can say is this program is a "framework wannabe".\
+Current Answer : I think so. Still haven't used Rails.
 
 # ⚠This is V2.0 (Still Under Delvelopment)⚠
 ## Please Checkout v1 branch for Stable Framework
 
 
-##### [Visit Official Website for more Information](https://tg21.github.io)
+## Our Philosphy
+Spend your time writing your business logic rather than writing server.
+
+## Why PyOP?
+- No additional dependencies just Vanilla python3.
 - Python-On-Pails(PyOP) is just a simple "kind of a framework" programmed in python. It is cool and it also  eliminates the need to install apache2, xampp ,wamp or lamp on systems that already have python(Python3 to be precise) installed.
 - PyOP can use python3 as the main server side language.
-.
-
-# Why Make it?
-Currently most developer use flask or django as frameworks for web-development with python.\
-But I found that Django has a steep learning curve, You can't just use it to build web-applications after learning python, you have to watch and read tutorials on Django too.\
-same case exists with flask too. So, I wanted to make a framework anybody who has working knowledge of python could use to create Web-Apps.
-
+- PyOP is like a ready-to-deploy framework. everything is already setup for you. You only need to write your business logic.
+- modifying behaviour of server does not require writing more code, simple changes to server/settings.py is enough.
+## [Visit Official wiki for more Information](https://github.com/tg21/python-on-pails/wiki) (Incomplete)
 
 ## How is it different from version 1.
  - For starters, version 2 of PyOP will be based on MVC.
  - And Many more features which I will list once they are implemented.
+ - Automatic type casting.
+ - changed error responses to tackle information gathering attacks from softwares like nmap.
 
-### TODOs
+## TODOs
+[Track TODOs here](https://github.com/tg21/python-on-pails/projects/1)
 
- - Add easy routes feature (DONE).
- - Add a GUI for to start and manage server
- - package for pypi
- - Easy TLS encryption
- - Make things like cookies and $_SERVER kind of thing available
- - find and better name and logo for this project(LOGO done and love project name so not gonna change it now).
- - Make server understand inline python code from html files (DONE).
+### Something missing from TODOs?
+ - join [discussions](https://github.com/tg21/python-on-pails/discussions/3).
+ - Open Issues.
+ - Make PRs.
 
-### Installation
+## Installation
 PyOP requires [python3](https://www.python.org/) to run.
-
-add your project files in www folder.\
-run server.py to start the server.\
-all files presnent in www folder will be served to client.
-
 
 ```sh
 $ cd python-on-pails
