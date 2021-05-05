@@ -28,7 +28,7 @@ Spend your time writing your business logic rather than writing server.
  - changed error responses to tackle information gathering attacks from softwares like nmap.
 
 ## TODOs
-[Track TODOs here](https://github.com/tg21/python-on-pails/projects/1)
+Track TODOs, Inprogress and Completed Goals [here on project board](https://github.com/tg21/python-on-pails/projects/1)
 
 ### Something missing from TODOs?
  - join [discussions](https://github.com/tg21/python-on-pails/discussions/3).
