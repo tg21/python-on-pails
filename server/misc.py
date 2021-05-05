@@ -84,10 +84,7 @@ def mapDictToClass(dic,cls):
         return None
 
 
-class Req:
-    def __init__(self,method,data):
-        self.method = method
-        self.data = data
+
 
 # objectFortype = {
 #     'str' : str,
