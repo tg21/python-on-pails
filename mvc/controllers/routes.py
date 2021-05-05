@@ -50,14 +50,14 @@ postRoutes = {
     '/sum': {'action':sumNum,'input':md.sumInputModel},
     '/sumCustom': {'action':sumCustom,'input':md.sumInputModel,'customResponse': True},
     '/product': typeCastedProduct,
-    '/greet': 'services/greet.py',
+    '/greet': {'action':'services/greet.py','input':md.UserDetials,'customResponse':{'mimeType':'text/html'}},
 
 }
 getRoutes = {
     '/sum': sumNum1,
     '/sumCustom': {'action':sumCustom,'input':md.sumInputModel,'customResponse': True},
     '/product': typeCastedProduct,
-    '/greet': 'sercives/greet.py',
+    '/greet': 'services/greet.py',
 
 }
 

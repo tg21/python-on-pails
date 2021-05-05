@@ -6,3 +6,6 @@ class sumInputModel:
     c = int
     d = square
 
+class UserDetials:
+    name = str
+    age = int

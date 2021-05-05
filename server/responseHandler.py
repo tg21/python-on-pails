@@ -4,6 +4,7 @@ from server.mimeTypes import mimeTypes
 import subprocess
 from os import name as py,getcwd,environ
 import pickle
+from server.internalModels import ResoponseClass
 if(py=="posix"):
     py = "python3"
 else:
@@ -44,31 +45,39 @@ class ResponseHandler:
         try:
             if(self.requestType == 'static'):
                 if(self.request.endswith('.html')):
-                    self.response = _ResoponseClass(self._serveStatic(self.request),200,'text/html')
+                    self.response = ResoponseClass(self._serveStatic(self.request),200,'text/html')
                 elif(self.request.endswith('.py')):
-                    self.response = _ResoponseClass(self._serverStaticPythonFile(self.request),200,'text/html')
+                    self.response = ResoponseClass(self._serverStaticPythonFile(self.request),200,'text/html')
                 elif(self.request.endswith('.pyhtml')):
-                    self.response = _ResoponseClass(self._serverStaticPyHtml(self.request),200,'text/html')
+                    self.response = ResoponseClass(self._serverStaticPyHtml(self.request),200,'text/html')
                 else:
-                    self.response = _ResoponseClass(self._serveStatic(self.request),200,mimeTypes.get('.'+self.request.split('.')[-1],'application/octet-stream'))            
+                    self.response = ResoponseClass(self._serveStatic(self.request),200,mimeTypes.get('.'+self.request.split('.')[-1],'application/octet-stream'))            
             elif(self.requestType == 'staticFunction'):
-                self.response = _ResoponseClass(self._serverStaticPythonFunction(self.request),200,'text/html')
+                self.response = ResoponseClass(self._serverStaticPythonFunction(self.request),200,'text/html')
             elif(self.requestType == 'controllerFunction'):
-                if(self.customResponse == None):
-                    self.response = _ResoponseClass(self._executeAndServeFunction(self.request,self.reqData,self.unpack),200,'application/json')
-                else:
-                    res = self._executeAndServeFunction(self.request,self.reqData,self.unpack)
-                    self.response = _ResoponseClass(res.get('content'),res.get('code',200),res.get('mimeType','application/json'))
+                res = self._executeAndServeFunction(self.request,self.reqData,self.unpack)
+                self.handleCustomResponse(res)
             elif(self.requestType == 'controllerFile'):
-                self.response = _ResoponseClass(self._executeAndServeFile(self.request,self.reqData),200,'application/json')
+                res = self._executeAndServeFile(self.request,self.reqData)
+                self.handleCustomResponse(res)
             else:
                 raise BaseException
         except Exception as e:
             if config.logging:
                 print(e)
-            self.response = _ResoponseClass(type(e).__name__,500,'text/html')
+            self.response = ResoponseClass(type(e).__name__,500,'text/html')
         return self.response
        
+    def handleCustomResponse(self,res):
+        if(self.customResponse == None):
+            self.response = ResoponseClass(res,200,'application/json')
+        elif(self.customResponse == True):
+            self.response = ResoponseClass(res.get('content'),res.get('code',200),res.get('mimeType','application/json'))
+        elif(type(self.customResponse) is dict):
+            self.response = ResoponseClass(res,self.customResponse.get('code',200),self.customResponse.get('mimeType','application/json'))
+        else:
+            # TODO:Raise Custome Reponse Exception
+            raise Exception
 
 def subprocessPyFile(request,reqData):
     # return sp.check_output([py, request,reqData])
@@ -144,10 +153,6 @@ class MyHTMLParser(HTMLParser):
             res = lcl['execFun']()
             self.processed_file = self.processed_file.replace(place,res.rstrip())
     
-class _ResoponseClass:
-    def __init__(self,response,responseCode,mimeType):
-        self.content = response
-        self.responseCode = responseCode
-        self.mimeType = mimeType
+
 
 

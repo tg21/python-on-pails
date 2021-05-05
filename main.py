@@ -6,7 +6,8 @@ dir_path = (str(os.path.dirname(os.path.realpath(__file__))) + "/")
 # sys.path.insert(0, '{}/server'.format(dir_path))
 from server.settings import config,server_info
 from server.responseHandler import ResponseHandler
-from server.misc import jsonify,dict2obj,parseJsonToClass,Req
+from server.misc import jsonify,dict2obj,parseJsonToClass
+from server.internalModels import Req,ResoponseClass
 # sys.path.insert(0, '{}/{}'.format(dir_path,config.views))
 # sys.path.insert(0, '{}/{}'.format(dir_path,config.controllers))
 
@@ -109,6 +110,10 @@ class PyOPSever(BaseHTTPRequestHandler):
                 request = dir_path+config.static+queryString[0]
                 response = ResponseHandler(request,'static',None).respond()
 
+        self.send_custom_response(response)
+        
+
+    def send_custom_response(self,response:ResoponseClass):
         self.log_request(response.responseCode)
         self.send_response_only(response.responseCode)
         self.send_header('date',self.date_time_string())
@@ -122,13 +127,9 @@ class PyOPSever(BaseHTTPRequestHandler):
                 response.content = bytes(response.content, 'utf-8')
         self.wfile.write(response.content)
 
-
     def handle_one_request(self):
         """Handle a single HTTP request.
-
-        You normally don't need to override this method; see the class
-        __doc__ string for information on how to handle specific HTTP
-        commands such as GET and POST.
+        Overridden from base class
 
         """
         try:
@@ -148,13 +149,7 @@ class PyOPSever(BaseHTTPRequestHandler):
             mname = 'do_' + self.command
             if not hasattr(self, mname):
                 if(config.fool_nmap):
-                    self.log_request(200)
-                    self.send_response_only(200)
-                    self.send_header('date',self.date_time_string())
-                    self.send_header('content-type', 'application/json')
-                    self.send_header('server',server_info.server_name + ' '+ server_info.server_version)
-                    self.end_headers()
-                    self.wfile.write(bytes(config.fool_nmap_content))
+                    self.send_custom_response(ResoponseClass(config.fool_nmap_content,200,'application/json'))
                 else:
                     self.send_error(
                         HTTPStatus.NOT_IMPLEMENTED,
@@ -180,7 +175,7 @@ class PyOPSever(BaseHTTPRequestHandler):
 
 def run():
     print("Starting server ...")
-    server_address = (config.host, config.port)
+    server_address = (config.host, 443)
     #httpd = HTTPServer(server_address, PyOPSever)
     httpd = ThreadingHTTPServer(server_address, PyOPSever)
     print("running server at ", server_address)
