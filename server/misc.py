@@ -50,7 +50,9 @@ def isSequence(ob):
 def parseJsonToClass(input,model):
     output = None
     try:
-        if isSequence(model) and isSequence(input):
+        if(model is None or input is None):
+            output = input
+        elif isSequence(model) and isSequence(input):
             output = []
             for i in range(len(input)):
                 # if(i > len(input) - 1):

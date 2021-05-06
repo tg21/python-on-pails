@@ -6,6 +6,12 @@ class sumInputModel:
     c = int
     d = square
 
+class productInputModel:
+    a = int
+    b = int
+    c = int
+    d = [int]
+
 class UserDetials:
     name = str
     age = int

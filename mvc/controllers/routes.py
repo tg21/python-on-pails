@@ -1,14 +1,14 @@
 """
-================================================================================================
+===================================================================================================================================
 Specify routes in this file to handle API calls.
 **NOTE: if views.py in views folder has a same route then that will be given preference **
 give python file or python functions for their corresponding routes.
 python files must defin main(req) method
 every function or python file should accept atleast one parameter(req object)
-results obatined from these files will be serialized and retured as application/json
-*************************************************************************************************
+results obatined from these files will be serialized and retured as application/json unless customResponse in toggled for a route
+***********************************************************************************************************************************
 remove this placeholder routes and make your own
-=================================================================================================
+===================================================================================================================================
 """
 import mvc.models.inputModels as md
 # how files are executed
@@ -33,9 +33,9 @@ def sumNum(req):
 def sumNum1(a:int,b:int):
     return a+b
 
-def sumCustom(req):
-    data = req.data
-    res = data.a + data.b + data.c + data.d
+def sumCustom(req:md.productInputModel):
+    #data = req.data
+    res = req.a + req.b + req.c + sum(req.d)
     res = "<h1>{}<h1>".format(res)
     return {
         'content' : res,
@@ -48,7 +48,7 @@ def typeCastedProduct(a:int,b:int,c:str,d:[int]):
 
 postRoutes = {
     '/sum': {'action':sumNum,'input':md.sumInputModel},
-    '/sumCustom': {'action':sumCustom,'input':md.sumInputModel,'customResponse': True},
+    '/sumCustom': {'action':sumCustom,'customResponse': True},
     '/product': typeCastedProduct,
     '/greet': {'action':'services/greet.py','input':md.UserDetials,'customResponse':{'mimeType':'text/html'}},
 

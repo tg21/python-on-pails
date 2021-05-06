@@ -28,10 +28,13 @@ import socket
 #         dir_path = os.getcwd()
 #         project_dir = ""
 
+def e(x):
+    a = 3
+
 
 class PyOPSever(BaseHTTPRequestHandler):
 
-    def FormatRequestData(self,model,types=None):
+    def FormatRequestData(self,model,types=None,argsCount=0):
         queryString = self.path.split("?")
         if(self.command == "GET"):
             if len(queryString) > 1:
@@ -47,15 +50,21 @@ class PyOPSever(BaseHTTPRequestHandler):
                 data = jsonify(data)
         if model is not None:
             if types is None:
+                # making object based on inputmodel key in route's dictionary
                 data = parseJsonToClass(data,model)
             else:
+                # making object based on parameters of controller function
                 output = []
-                for i in model:
-                    tp = types.get(i,None)
-                    if tp is None:
-                        output.append(data[i])
-                    else:
-                        output.append(parseJsonToClass(data[i],tp))
+                if(argsCount == 1): # mapping one dict to one class object (most common case of POST APIs)
+                    tp = types.get(model[0],None)
+                    output.append(parseJsonToClass(data,tp))
+                else:
+                    for i in range(argsCount): # mapping members in one dict to multiple function arguments (common case for GET APIs)
+                        tp = types.get(model[i],None)
+                        if tp is None:
+                            output.append(data[i])
+                        else:
+                            output.append(parseJsonToClass(data[i],tp))
                 return output
         else:
             # data = jso
@@ -92,12 +101,13 @@ class PyOPSever(BaseHTTPRequestHandler):
                 inputModel = None
                 customResponse = None
                 if(type(route) == dict):
-                    route,inputModel,customResponse = route.get('action'),route.get('input',object),route.get('customResponse',None)
+                    route,inputModel,customResponse = route.get('action'),route.get('input',None),route.get('customResponse',None)
                 if(callable(route)):
                     if inputModel is None:
                         params = route.__code__.co_varnames
                         types = route.__annotations__
-                        response = ResponseHandler(route,'controllerFunction',self.FormatRequestData(params,types),customResponse,unpack=True).respond()
+                        argsCount = route.__code__.co_argcount
+                        response = ResponseHandler(route,'controllerFunction',self.FormatRequestData(params,types,argsCount),customResponse,unpack=True).respond()
                     else:
                         response = ResponseHandler(route,'controllerFunction',self.FormatRequestData(inputModel),customResponse,unpack=False).respond()
                 elif(type(route) == str and route.endswith('.py')):
@@ -175,7 +185,7 @@ class PyOPSever(BaseHTTPRequestHandler):
 
 def run():
     print("Starting server ...")
-    server_address = (config.host, 443)
+    server_address = (config.host, config.port)
     #httpd = HTTPServer(server_address, PyOPSever)
     httpd = ThreadingHTTPServer(server_address, PyOPSever)
     print("running server at ", server_address)
