@@ -12,8 +12,12 @@ class config:
     entry = 'main.py'
     host = '0.0.0.0'
     port = 80 #http port
-    enctyption=False # set true for to enable TLS
+    
+    enableTLS = False #enable for TLS Support
     sPort=443 #secure/https port
+    PATH_TLS_KEY_FILE = None #give path to key file here (string)
+    PATH_TLS_CERT_FILE = None #give path to CERT file here (string)
+    redirect_to_https = False # enable to redirect all http requests to https
 
     #some options for security
     wildcard_response = True #will give 200 even from missing files
@@ -25,10 +29,6 @@ class config:
     views='mvc/views/'
     static='mvc/views/static/'
     logging=False
-
-    enableTLS = False
-    PATH_TLS_KEY_FILE = None #give path to key file here (string)
-    PATH_TLS_CERT_FILE = None #give path to CERT file here (string)
 
 
 
