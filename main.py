@@ -1,6 +1,6 @@
 import sys
 import os
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer # ,HTTPServer,
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 dir_path = (str(os.path.dirname(os.path.realpath(__file__))) + "/")
 # sys.path.insert(0, '{}/server'.format(dir_path))
@@ -13,9 +13,9 @@ from server.internalModels import Req,ResoponseClass
 
 from mvc.views.views import views
 from mvc.controllers.routes import getRoutes,postRoutes
-import ssl
 from http import HTTPStatus
-import socket
+from socket import timeout
+from socketserver import ThreadingMixIn
 
 
 # from filehandler import response
@@ -43,11 +43,25 @@ class PyOPSever(BaseHTTPRequestHandler):
                 data = ""
         else:
             data = str(self.rfile.read(int(self.headers['Content-Length'])), 'utf-8')
-        if(data != None and data!=""):
+
+        data = self.ParseRequestDataInToObject(data,model,types,argsCount)
+        # data = dict2obj({
+        #     'method':rtype,
+        #     'data':data,
+        # })
+        return data
+        # return Req(self.command,data)
+
+
+    def ParseRequestDataInToObject(self,data,model,types=None,argsCount=0):
+        if(type(data) == str and data!=""):
             try:
                 data = json.loads(data)
             except Exception:
                 data = jsonify(data)
+        elif(type(data) is not dict):
+            #TODO: Better Exception for unsupported format data
+            raise Exception
         if model is not None:
             if types is None:
                 # making object based on inputmodel key in route's dictionary
@@ -64,17 +78,12 @@ class PyOPSever(BaseHTTPRequestHandler):
                         if tp is None:
                             output.append(data[i])
                         else:
-                            output.append(parseJsonToClass(data[i],tp))
+                            output.append(parseJsonToClass(data[model[i]],tp))
                 return output
         else:
             # data = jso
             data = dict2obj(data)
-        # data = dict2obj({
-        #     'method':rtype,
-        #     'data':data,
-        # })
         return data
-        # return Req(self.command,data)
 
     def GETPOST(self):  # rtype stands for request type
         # print("obj addr after int is :: ",id(self),"==>",int(str(id(self))))
@@ -168,7 +177,7 @@ class PyOPSever(BaseHTTPRequestHandler):
             method = getattr(self, mname)
             method()
             self.wfile.flush() #actually send the response if not already done.
-        except socket.timeout as e:
+        except timeout as e:
             #a read or a write timed out.  Discard this connection
             self.log_error("Request timed out: %r", e)
             self.close_connection = True
@@ -183,19 +192,24 @@ class PyOPSever(BaseHTTPRequestHandler):
         self.GETPOST()
         return
 
+#making seperate class and not using one in http libary to support backward compatiblity with python versions
+class ThreadedPyOPServer(ThreadingMixIn, HTTPServer):
+    daemon_threads = True
+
 def run():
     print("Starting server ...")
     server_address = (config.host, config.port)
-    #httpd = HTTPServer(server_address, PyOPSever)
-    httpd = ThreadingHTTPServer(server_address, PyOPSever)
+    # httpd = HTTPServer(server_address, PyOPSever)
+    httpd = ThreadedPyOPServer(server_address, PyOPSever)
     print("running server at ", server_address)
     print("WD :- ", dir_path + config.static)
     if config.enableTLS:
-        httpd.socket = ssl.wrap_socket (httpd.socket, 
+        from ssl import wrap_socket
+        httpd.socket = wrap_socket (httpd.socket, 
             keyfile= config.PATH_TLS_KEY_FILE, 
             certfile= config.PATH_TLS_CERT_FILE, server_side=True)
         print("Listening Securely")
     httpd.serve_forever()
 
-
-run()
+if __name__ == '__main__':
+    run()

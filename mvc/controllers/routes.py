@@ -14,7 +14,7 @@ import mvc.models.inputModels as md
 # how files are executed
 # x = """
 # def main(n):
-# 	return "hello {}".format(n)		
+# 	return "hello {}".format(n)
 # """
 
 # exec(x)
@@ -26,11 +26,11 @@ import mvc.models.inputModels as md
 # from services.greet import main
 
 def sumNum(req):
-    data = req.data
-    a,b = data.a,data.b
+    # data = req.data
+    a, b = req.a, req.b
     return a+b
 
-def sumNum1(a:int,b:int):
+def sumNum1(a: int, b: int):
     return a+b
 
 def sumCustom(req:md.productInputModel):

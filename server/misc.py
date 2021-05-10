@@ -39,6 +39,11 @@ def isSequence(ob):
         return True
     return False
 
+def isSequenceType(type):
+    if(type is list or type is tuple or type is set or type is frozenset):
+        return True
+    return False
+
 
 ## to get types and names of parameters NOTE: won't work without types
 # a.__annotations__
