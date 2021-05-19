@@ -37,7 +37,7 @@ test_cases = [
     },
     {
         'data':"""{
-            "a":"3","b":"4","c":5"
+            "a":"3","b":"4","c":"5"
         }""",
         'model':('a','b','c'),
         'types':{'a':int,'b':int},
@@ -46,7 +46,7 @@ test_cases = [
     },
     {
         'data':"""{
-            "a":"3","b":"4","c":5"
+            "a":"3","b":"4","c":"5"
         }""",
         'model':md.sumInputModel,
         'types':None,
@@ -58,19 +58,20 @@ test_cases = [
         'model':('a','b','c'),
         'types':{'a':int,'b':int},
         'argsCount':2,
-        'output_as_list':[3,4],
+        'output_as_list':[3,None],#None instead of 4 because int("'4'") will throw error
     },
     {
         'data':"a=3&b='4'&c=5&e=9",
         'model':md.sumInputModel,
         'types':None,
         'argsCount':0,
-        'output_as_list':[3,4,5,None],
+        'output_as_list':[3,None,5,None],#None instead of 4 because int("'4'") will throw error :-> this behaviour can be changed if required with little cchange to code
     },
 ]
 
 class Test_REQUEST_DATA_TO_OBJECT(unittest.TestCase):
     def test_json_to_class_parse(self):
+        test_number = 0
         for test in test_cases:
             #test.get('class variables').get('mode',None)
             data = test.get('data',None)
@@ -89,7 +90,7 @@ class Test_REQUEST_DATA_TO_OBJECT(unittest.TestCase):
             type_test = (isSequenceType(desired_type) and isSequenceType(type(processed_data)) or (desired_type is type(processed_data)))
             if(type_test == False):
                 print("Failed")
-            self.assertEqual(type_test,True,"Type Equality Check Failed")
+            self.assertEqual(type_test,True,"Type Equality Check Failed : Number {}".format(test_number))
             actual = []
             if(isSequenceType(desired_type)):
                 actual = processed_data
@@ -98,4 +99,6 @@ class Test_REQUEST_DATA_TO_OBJECT(unittest.TestCase):
                     if(not prop.startswith('_') and not callable(prop)):
                         #desired.append(test.get('data',None).get(prop,None))
                         actual.append(getattr(processed_data,prop))
-            self.assertSequenceEqual(test.get('output_as_list'),actual,"Values Equality Check Failed")
+            self.assertSequenceEqual(test.get('output_as_list'),actual,"Values Equality Check Failed : Number {}".format(test_number))
+            
+            test_number += 1
