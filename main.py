@@ -7,7 +7,7 @@ dir_path = (str(os.path.dirname(os.path.realpath(__file__))) + "/")
 from server.settings import config,server_info
 from server.responseHandler import ResponseHandler
 from server.misc import jsonify,dict2obj,parseJsonToClass
-from server.internalModels import Req,ResoponseClass
+from server.internalModels import Req,ResoponseClass,PyopReq
 # sys.path.insert(0, '{}/{}'.format(dir_path,config.views))
 # sys.path.insert(0, '{}/{}'.format(dir_path,config.controllers))
 
@@ -57,7 +57,8 @@ class PyOPSever(BaseHTTPRequestHandler):
         if(type(data) == str and data!=""):
             try:
                 data = json.loads(data)
-            except Exception:
+            except Exception as e:
+                print(e)
                 data = jsonify(data)
         elif(type(data) is not dict):
             #TODO: Better Exception for unsupported format data
@@ -77,6 +78,8 @@ class PyOPSever(BaseHTTPRequestHandler):
                         tp = types.get(model[i],None)
                         if tp is None:
                             output.append(data[i])
+                        elif tp is PyopReq:
+                            output.append(self)
                         else:
                             output.append(parseJsonToClass(data[model[i]],tp))
                 return output
@@ -129,22 +132,22 @@ class PyOPSever(BaseHTTPRequestHandler):
                 request = dir_path+config.static+queryString[0]
                 response = ResponseHandler(request,'static',None).respond()
 
-        self.send_custom_response(response)
+        self.send_custom_response(response.content,response.responseCode,response.mimeType)
         
 
-    def send_custom_response(self,response:ResoponseClass):
-        self.log_request(response.responseCode)
-        self.send_response_only(response.responseCode)
+    def send_custom_response(self,content:bytes,responseCode=200,mimeType='text/html'):
+        self.log_request(responseCode)
+        self.send_response_only(responseCode)
         self.send_header('date',self.date_time_string())
-        self.send_header('content-type', response.mimeType)
+        self.send_header('content-type', mimeType)
         self.send_header('server',server_info.server_name + ' '+ server_info.server_version)
         self.end_headers()
-        if(type(response.content) is not bytes):
-            if(type(response.content) is not str):
-                response.content = bytes(str(response.content), 'utf-8')
+        if(type(content) is not bytes):
+            if(type(content) is not str):
+                content = bytes(str(content), 'utf-8')
             else:
-                response.content = bytes(response.content, 'utf-8')
-        self.wfile.write(response.content)
+                content = bytes(content, 'utf-8')
+        self.wfile.write(content)
 
     def handle_one_request(self):
         """Handle a single HTTP request.
@@ -168,7 +171,7 @@ class PyOPSever(BaseHTTPRequestHandler):
             mname = 'do_' + self.command
             if not hasattr(self, mname):
                 if(config.fool_nmap):
-                    self.send_custom_response(ResoponseClass(config.fool_nmap_content,200,'application/json'))
+                    self.send_custom_response(config.fool_nmap_content,200,'application/json')
                 else:
                     self.send_error(
                         HTTPStatus.NOT_IMPLEMENTED,

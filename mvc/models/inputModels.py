@@ -12,6 +12,6 @@ class productInputModel:
     c = int
     d = [int]
 
-class UserDetials:
+class UserDetails:
     name = str
     age = int
