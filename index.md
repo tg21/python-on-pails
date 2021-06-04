@@ -1,37 +1,68 @@
-## Welcome to GitHub Pages
+# Python-On-Pails(PyOP)
+<img src="https://tg21.github.io/img/pyop.png" alt="PyOP_LOGO" width="300px"><br>
+## You all have seen Ruby on Rails now get ready for python on pails.
+#### So what is Python on Pails?
+Q: Is it something like Ruby on Rails ,but in python?\
+Previous Answer : No Idea(Maybe). Never used Rails. All I can say is this program is a "framework wannabe".\
+Current Answer : I think so. Still haven't used Rails.
 
-You can use the [editor on GitHub](https://github.com/tg21/python-on-pails/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+# ⚠This is V2.0 (Still Under Delvelopment)⚠
+## Please Checkout v1 branch for Stable Framework
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
-### Markdown
+## Our Philosphy
+Spend your time writing your business logic rather than writing server.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+## Why PyOP?
+- No additional dependencies just Vanilla python3.
+- Python-On-Pails(PyOP) is just a simple "kind of a framework" programmed in python. It is cool and it also  eliminates the need to install apache2, xampp ,wamp or lamp on systems that already have python(Python3 to be precise) installed.
+- PyOP can use python3 as the main server side language.
+- PyOP is like a ready-to-deploy framework. everything is already setup for you. You only need to write your business logic.
+- modifying behaviour of server does not require writing more code, simple changes to server/settings.py is enough.
+## [Visit Official wiki for more Information](https://github.com/tg21/python-on-pails/wiki) (Incomplete)
 
-```markdown
-Syntax highlighted code block
+## How is it different from version 1.
+ - For starters, version 2 of PyOP will be based on MVC.
+ - And Many more features which I will list once they are implemented.
+ - Automatic type casting.
+ - changed error responses to tackle information gathering attacks from softwares like nmap.
 
-# Header 1
-## Header 2
-### Header 3
+## TODOs
+Track TODOs, Inprogress and Completed Goals [here on project board](https://github.com/tg21/python-on-pails/projects/1)
 
-- Bulleted
-- List
+### Something missing from TODOs?
+ - join [discussions](https://github.com/tg21/python-on-pails/discussions/3).
+ - Open Issues.
+ - Make PRs.
 
-1. Numbered
-2. List
+## Installation
+PyOP requires [python3](https://www.python.org/) to run.
 
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```sh
+$ cd python-on-pails
+$ sudo python3 main.py
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+For production environments...
 
-### Jekyll Themes
+```sh
+do the same as above but at your own risk.
+```
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/tg21/python-on-pails/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
 
-### Support or Contact
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+### Development
+
+Want to contribute? Great! \
+If you know how and want to contribute [contact](https://tg21.github.io) me.\
+Help is always welcome.
+
+
+
+License
+----
+
+It has none.(You can fork it for personal use)
+
+
+**Free Software Open-Source Software, yeah enjoy!**
