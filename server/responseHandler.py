@@ -4,7 +4,7 @@ from server.mimeTypes import mimeTypes
 import subprocess
 from os import name as py,getcwd,environ
 import pickle
-from server.internalModels import ResoponseClass
+from server.internalModels import ResponseClass
 if(py=="posix"):
     py = "python3"
 else:
@@ -24,10 +24,10 @@ class ResponseHandler:
 
     def _serverStaticPythonFunction(self,request):
         return request()
-    
+
     def _serverStaticPythonFile(self,request):
         return _run_python_file(request)
-    
+
     def _serverStaticPyHtml(self,request):
         return _processPyHtml(request)
 
@@ -45,15 +45,15 @@ class ResponseHandler:
         try:
             if(self.requestType == 'static'):
                 if(self.request.endswith('.html')):
-                    self.response = ResoponseClass(self._serveStatic(self.request),200,'text/html')
+                    self.response = ResponseClass(self._serveStatic(self.request),200,'text/html')
                 elif(self.request.endswith('.py')):
-                    self.response = ResoponseClass(self._serverStaticPythonFile(self.request),200,'text/html')
+                    self.response = ResponseClass(self._serverStaticPythonFile(self.request),200,'text/html')
                 elif(self.request.endswith('.pyhtml')):
-                    self.response = ResoponseClass(self._serverStaticPyHtml(self.request),200,'text/html')
+                    self.response = ResponseClass(self._serverStaticPyHtml(self.request),200,'text/html')
                 else:
-                    self.response = ResoponseClass(self._serveStatic(self.request),200,mimeTypes.get('.'+self.request.split('.')[-1],'application/octet-stream'))            
+                    self.response = ResponseClass(self._serveStatic(self.request),200,mimeTypes.get('.'+self.request.split('.')[-1],'application/octet-stream'))
             elif(self.requestType == 'staticFunction'):
-                self.response = ResoponseClass(self._serverStaticPythonFunction(self.request),200,'text/html')
+                self.response = ResponseClass(self._serverStaticPythonFunction(self.request),200,'text/html')
             elif(self.requestType == 'controllerFunction'):
                 res = self._executeAndServeFunction(self.request,self.reqData,self.unpack)
                 self.handleCustomResponse(res)
@@ -65,16 +65,16 @@ class ResponseHandler:
         except Exception as e:
             if config.logging:
                 print(e)
-            self.response = ResoponseClass(type(e).__name__,500,'text/html')
+            self.response = ResponseClass(type(e).__name__,500,'text/html')
         return self.response
-       
+
     def handleCustomResponse(self,res):
         if(self.customResponse == None):
-            self.response = ResoponseClass(res,200,'application/json')
+            self.response = ResponseClass(res,200,'application/json')
         elif(self.customResponse == True):
-            self.response = ResoponseClass(res.get('content'),res.get('code',200),res.get('mimeType','application/json'))
+            self.response = ResponseClass(res.get('content'),res.get('code',200),res.get('mimeType','application/json'))
         elif(type(self.customResponse) is dict):
-            self.response = ResoponseClass(res,self.customResponse.get('code',200),self.customResponse.get('mimeType','application/json'))
+            self.response = ResponseClass(res,self.customResponse.get('code',200),self.customResponse.get('mimeType','application/json'))
         else:
             # TODO:Raise Custome Reponse Exception
             raise Exception
@@ -128,7 +128,7 @@ class MyHTMLParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if tag=="py":
             self.recording += 1
-    
+
     def handle_endtag(self, tag):
         if tag=="py":
             self.recording -= 1
@@ -152,7 +152,3 @@ class MyHTMLParser(HTMLParser):
             #a = [globals(),locals()]
             res = lcl['execFun']()
             self.processed_file = self.processed_file.replace(place,res.rstrip())
-    
-
-
-

@@ -7,7 +7,7 @@ dir_path = (str(os.path.dirname(os.path.realpath(__file__))) + "/")
 from server.settings import config,server_info
 from server.responseHandler import ResponseHandler
 from server.misc import jsonify,dict2obj,parseJsonToClass
-from server.internalModels import Req,ResoponseClass,PyopReq
+from server.internalModels import Req,ResponseClass,PyopReq
 # sys.path.insert(0, '{}/{}'.format(dir_path,config.views))
 # sys.path.insert(0, '{}/{}'.format(dir_path,config.controllers))
 
@@ -94,7 +94,7 @@ class PyOPSever(BaseHTTPRequestHandler):
         response:ResponseHandler = None
         queryString = self.path.split("?")
 
-        
+
         #checking routes in views.py
         route = views.get(queryString[0], False)
         if route:
@@ -133,7 +133,7 @@ class PyOPSever(BaseHTTPRequestHandler):
                 response = ResponseHandler(request,'static',None).respond()
 
         self.send_custom_response(response.content,response.responseCode,response.mimeType)
-        
+
 
     def send_custom_response(self,content:bytes,responseCode=200,mimeType='text/html'):
         self.log_request(responseCode)
@@ -208,8 +208,8 @@ def run():
     print("WD :- ", dir_path + config.static)
     if config.enableTLS:
         from ssl import wrap_socket
-        httpd.socket = wrap_socket (httpd.socket, 
-            keyfile= config.PATH_TLS_KEY_FILE, 
+        httpd.socket = wrap_socket (httpd.socket,
+            keyfile= config.PATH_TLS_KEY_FILE,
             certfile= config.PATH_TLS_CERT_FILE, server_side=True)
         print("Listening Securely")
     httpd.serve_forever()
