@@ -19,6 +19,7 @@ more infrormation is stored in docs/ folder
 IMPORTANT: Only read files from docs/ when required.
 
 docs/architecture.md - contains information about architecture
+docs/serving.md - protocol contracts, WSGI/ASGI adapters, production vs legacy, proxy/lifecycle/timeouts, deployment patterns
 
 
 ## Development

@@ -106,7 +106,13 @@ def _run_python_file(file):
     with open(file,"r") as f:
         readFile = f.read()
     lcl = {'main':None}
-    exec(readFile,{},lcl)
+    # Provide module context: view files commonly use __file__ (e.g. the
+    # sample index.py). An empty globals dict leaves it undefined, turning
+    # every such page into a 500. The exec'd main() resolves globals from
+    # this dict, so __file__/__name__ must live here, not in lcl.
+    # TODO: We might want to maintain allowed globals/locals in seperate file for maintainablility
+    glo = {'__file__': file, '__name__': '__main__'}
+    exec(readFile,glo,lcl)
     return lcl['main']()
 
 def _processPyHtml(file):
@@ -114,16 +120,17 @@ def _processPyHtml(file):
     readFile:str
     with open(file,"r") as f:
         readFile = f.read()
-    parser = MyHTMLParser(readFile)
+    parser = MyHTMLParser(readFile, file)
     parser.feed(readFile)
     return parser.processed_file
 
 ### class to process inline python
 class MyHTMLParser(HTMLParser):
-    def __init__(self,file):
+    def __init__(self,file,path=None):
         HTMLParser.__init__(self)
         self.recording = 0
         self.processed_file = file
+        self.path = path  # source file path, exposed as __file__ to <py> blocks
         # self.sdata = []
     def handle_starttag(self, tag, attrs):
         if tag=="py":
@@ -145,10 +152,11 @@ class MyHTMLParser(HTMLParser):
                     min_tabs = tabs
             # temp = open("temp.py","w")
             lcl = {'execFun':None}
+            glo = {'__file__': self.path or '<pyhtml>', '__name__': '__main__'}
             toExec = "def execFun():\n"
             for i in range(0,len(data)):
                 toExec += "\t"+data[i].rstrip(' ')[min_tabs:]+"\n"
-            exec(toExec,{},lcl)
+            exec(toExec,glo,lcl)
             #a = [globals(),locals()]
             res = lcl['execFun']()
             self.processed_file = self.processed_file.replace(place,res.rstrip())
