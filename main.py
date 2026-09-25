@@ -1,15 +1,13 @@
-import sys
 import os
+import signal
+import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 dir_path = (str(os.path.dirname(os.path.realpath(__file__))) + "/")
-# sys.path.insert(0, '{}/server'.format(dir_path))
 from server.settings import config,server_info
-from server.responseHandler import ResponseHandler
 from server.misc import jsonify,dict2obj,parseJsonToClass
-from server.internalModels import Req,ResoponseClass,PyopReq
-# sys.path.insert(0, '{}/{}'.format(dir_path,config.views))
-# sys.path.insert(0, '{}/{}'.format(dir_path,config.controllers))
+from server.internalModels import Req,ResponseClass,PyopReq
+from server.http import Headers, Request as PyopRequest, split_path_query
 
 from mvc.views.views import views
 from mvc.controllers.routes import getRoutes,postRoutes
@@ -18,21 +16,25 @@ from socket import timeout
 from socketserver import ThreadingMixIn
 
 
-# from filehandler import response
-# from extraFunctions import initials
-
-
-# HTTPReuestHandler class
-# if(len(sys.argv) > 1 or True):
-#     if(True or sys.argv[1] == "-g"):  # g for global
-#         dir_path = os.getcwd()
-#         project_dir = ""
-
 def e(x):
     a = 3
 
 
+# Shared dispatch instance: same layer used by WSGI/ASGI adapters.
+# Imported lazily so route edits are picked up on reload.
+_application = None
+
+def get_application():
+    global _application
+    if _application is None:
+        from server.application import PyopApplication
+        _application = PyopApplication()
+    return _application
+
+
 class PyOPSever(BaseHTTPRequestHandler):
+    server_version = server_info.server_name + ' ' + server_info.server_version
+    protocol_version = 'HTTP/1.1'
 
     def FormatRequestData(self,model,types=None,argsCount=0):
         queryString = self.path.split("?")
@@ -42,15 +44,11 @@ class PyOPSever(BaseHTTPRequestHandler):
             else:
                 data = ""
         else:
-            data = str(self.rfile.read(int(self.headers['Content-Length'])), 'utf-8')
+            length = int(self.headers.get('Content-Length', 0) or 0)
+            data = str(self.rfile.read(length), 'utf-8') if length else ""
 
         data = self.ParseRequestDataInToObject(data,model,types,argsCount)
-        # data = dict2obj({
-        #     'method':rtype,
-        #     'data':data,
-        # })
         return data
-        # return Req(self.command,data)
 
 
     def ParseRequestDataInToObject(self,data,model,types=None,argsCount=0):
@@ -88,52 +86,90 @@ class PyOPSever(BaseHTTPRequestHandler):
             data = dict2obj(data)
         return data
 
+    def _build_protocol_request(self):
+        """Convert handler state into a protocol-neutral Request."""
+        path, qbytes = split_path_query(self.path)
+        headers = Headers()
+        total = 0
+        for k, v in self.headers.items():
+            headers.add(k, v)
+            total += len(k) + len(v)
+        max_hdr = getattr(config, 'max_header_size', 16384)
+        body = b""
+        if self.command not in ("GET", "HEAD", "OPTIONS", "DELETE"):
+            try:
+                length = int(self.headers.get('Content-Length', 0) or 0)
+            except Exception:
+                length = 0
+            if length:
+                max_body = getattr(config, 'max_body_size', 1024 * 1024)
+                if length > max_body:
+                    # drain nothing; let dispatch return 413 with empty body
+                    return None, 413
+                try:
+                    body = self.rfile.read(length)
+                except Exception:
+                    raise ValueError("bad body")
+        scheme = 'https' if getattr(config, 'enableTLS', False) else 'http'
+        host = self.headers.get('Host', '')
+        return PyopRequest(self.command, path, qbytes, headers, body or b"",
+                           tuple(self.client_address), scheme, host), total
+
     def GETPOST(self):  # rtype stands for request type
-        # print("obj addr after int is :: ",id(self),"==>",int(str(id(self))))
-        # print("Client= ",self.client_address)
-        response:ResponseHandler = None
-        queryString = self.path.split("?")
+        try:
+            built, extra = self._build_protocol_request()
+        except ValueError:
+            self._send_protocol_error(400, "Bad Request")
+            return
+        if built is None and extra == 413:
+            # body too large: still build minimal request so app returns 413
+            path, qbytes = split_path_query(self.path)
+            headers = Headers([(k, v) for (k, v) in self.headers.items()])
+            built = PyopRequest(self.command, path, qbytes, headers, b"x" * (getattr(config, 'max_body_size', 1024 * 1024) + 1),
+                                tuple(self.client_address), 'http', self.headers.get('Host', ''))
+        app = get_application()
+        resp = app(built)
+        # buffer streams: dev server does not chunk-encode
+        if resp.is_stream:
+            resp = resp.buffered()
+        self._send_protocol_response(resp, head_only=(self.command == "HEAD"))
 
-        
-        #checking routes in views.py
-        route = views.get(queryString[0], False)
-        if route:
-            if(callable(route)):
-                response = ResponseHandler(route,'staticFunction',None).respond()
-            elif(type(route) is str):
-                request = dir_path+config.static+route
-                response = ResponseHandler(request,'static',None).respond()
-        else:
-            #checking routes in routes.py(controllers)
-            if(self.command == "GET"):
-                route =  getRoutes.get(queryString[0], False)
-            else:
-                route =  postRoutes.get(queryString[0], False)
-            if route:
-                inputModel = None
-                customResponse = None
-                if(type(route) == dict):
-                    route,inputModel,customResponse = route.get('action'),route.get('input',None),route.get('customResponse',None)
-                if(callable(route)):
-                    if inputModel is None:
-                        params = route.__code__.co_varnames
-                        types = route.__annotations__
-                        argsCount = route.__code__.co_argcount
-                        response = ResponseHandler(route,'controllerFunction',self.FormatRequestData(params,types,argsCount),customResponse,unpack=True).respond()
-                    else:
-                        response = ResponseHandler(route,'controllerFunction',self.FormatRequestData(inputModel),customResponse,unpack=False).respond()
-                elif(type(route) == str and route.endswith('.py')):
-                    request = dir_path+config.controllers+route
-                    response = ResponseHandler(request,'controllerFile',self.FormatRequestData(inputModel),customResponse).respond()
-                else:
-                    #TODO:better exception here
-                    raise Exception
-            else:
-                request = dir_path+config.static+queryString[0]
-                response = ResponseHandler(request,'static',None).respond()
+    def _send_protocol_response(self, resp, head_only=False):
+        # Preserve repeated headers (e.g. Set-Cookie).
+        self.log_request(resp.status)
+        self.send_response_only(resp.status)
+        # Map protocol headers; ensure date/server/content-length semantics.
+        sent_ct = False
+        sent_cl = False
+        for (k, v) in resp.headers.items():
+            lname = k.lower()
+            if lname == 'content-length':
+                sent_cl = True
+            if lname == 'content-type':
+                sent_ct = True
+            self.send_header(k, v)
+        body = resp.body if not resp.is_stream else b"".join(resp.iter_bytes())
+        if not sent_cl:
+            self.send_header('content-length', str(len(body)))
+        if not sent_ct:
+            self.send_header('content-type', 'text/html')
+        self.send_header('server', server_info.server_name + ' ' + server_info.server_version)
+        self.end_headers()
+        if not head_only and body:
+            if isinstance(body, str):
+                body = body.encode('utf-8')
+            self.wfile.write(bytes(body))
 
-        self.send_custom_response(response.content,response.responseCode,response.mimeType)
-        
+    def _send_protocol_error(self, code, message):
+        body = "{} {}".format(code, message).encode('utf-8')
+        self.log_request(code)
+        self.send_response_only(code)
+        self.send_header('date', self.date_time_string())
+        self.send_header('content-type', 'text/plain')
+        self.send_header('content-length', str(len(body)))
+        self.send_header('server', server_info.server_name + ' ' + server_info.server_version)
+        self.end_headers()
+        self.wfile.write(body)
 
     def send_custom_response(self,content:bytes,responseCode=200,mimeType='text/html'):
         self.log_request(responseCode)
@@ -168,14 +204,18 @@ class PyOPSever(BaseHTTPRequestHandler):
             if not self.parse_request():
                 # An error code has been sent, just exit
                 return
+            max_url = getattr(config, 'max_url_length', 8192)
+            if len(self.path or "") > max_url:
+                self._send_protocol_error(414, "URI Too Long")
+                return
             mname = 'do_' + self.command
             if not hasattr(self, mname):
-                if(config.fool_nmap):
-                    self.send_custom_response(config.fool_nmap_content,200,'application/json')
-                else:
+                if getattr(config, 'production', False) or not config.fool_nmap:
                     self.send_error(
                         HTTPStatus.NOT_IMPLEMENTED,
                         "Unsupported method (%r)" % self.command)
+                else:
+                    self.send_custom_response(config.fool_nmap_content,200,'application/json')
                 return
             method = getattr(self, mname)
             method()
@@ -186,7 +226,7 @@ class PyOPSever(BaseHTTPRequestHandler):
             self.close_connection = True
             return
 
-    # GET
+    # Explicit standard methods; all dispatch through the shared layer.
     def do_GET(self):
         self.GETPOST()
         return
@@ -195,24 +235,113 @@ class PyOPSever(BaseHTTPRequestHandler):
         self.GETPOST()
         return
 
+    def do_PUT(self):
+        self.GETPOST()
+        return
+
+    def do_PATCH(self):
+        self.GETPOST()
+        return
+
+    def do_DELETE(self):
+        self.GETPOST()
+        return
+
+    def do_HEAD(self):
+        self.GETPOST()
+        return
+
+    def do_OPTIONS(self):
+        self.GETPOST()
+        return
+
 #making seperate class and not using one in http libary to support backward compatiblity with python versions
 class ThreadedPyOPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
+    allow_reuse_address = True
 
 def run():
     print("Starting server ...")
+    app = get_application()
+    app.startup()
     server_address = (config.host, config.port)
-    # httpd = HTTPServer(server_address, PyOPSever)
     httpd = ThreadedPyOPServer(server_address, PyOPSever)
+    httpd.timeout = getattr(config, 'request_timeout', 30) or 30
     print("running server at ", server_address)
     print("WD :- ", dir_path + config.static)
     if config.enableTLS:
         from ssl import wrap_socket
-        httpd.socket = wrap_socket (httpd.socket, 
-            keyfile= config.PATH_TLS_KEY_FILE, 
+        httpd.socket = wrap_socket (httpd.socket,
+            keyfile= config.PATH_TLS_KEY_FILE,
             certfile= config.PATH_TLS_CERT_FILE, server_side=True)
         print("Listening Securely")
-    httpd.serve_forever()
+
+    # NOTE: BaseServer.shutdown() blocks until the serve_forever() loop
+    # exits, so it MUST be called from a different thread than the one
+    # running serve_forever() (here: the main thread). Calling it directly
+    # inside the signal handler deadlocks and the process appears stuck at
+    # "Shutting down ...". Hence the handler only flips state and kicks off
+    # a daemon thread that performs the blocking shutdown().
+    state = {"stopping": False}
+
+    def _graceful(signum, frame):
+        if state["stopping"]:
+            print("Second interrupt: forcing exit ...")
+            try:
+                httpd.server_close()
+            finally:
+                import os as _os
+                _os._exit(1)
+            return
+        state["stopping"] = True
+        print("Shutting down: draining active requests ...")
+        deadline = getattr(config, 'shutdown_drain_seconds', 10) or 10
+        app.shutdown()
+
+        def _stop():
+            try:
+                httpd.shutdown()
+            except Exception as exc:
+                print("shutdown error: {}".format(exc))
+
+        t = threading.Thread(target=_stop, daemon=True)
+        t.start()
+        # Drain deadline: if serve_forever() has not exited by then, force
+        # the listening socket closed so the process can exit. Daemon
+        # request threads (daemon_threads=True) do not block exit.
+        def _force():
+            if t.is_alive():
+                print("Drain deadline exceeded: forcing close ...")
+                try:
+                    httpd.server_close()
+                except Exception:
+                    pass
+        timer = threading.Timer(deadline, _force)
+        timer.daemon = True
+        timer.start()
+
+    try:
+        signal.signal(signal.SIGTERM, _graceful)
+        signal.signal(signal.SIGINT, _graceful)
+    except Exception:
+        pass
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        # Fallback when signals are unavailable (e.g. Windows): same
+        # non-blocking shutdown path as _graceful.
+        if not state["stopping"]:
+            state["stopping"] = True
+            print("Shutting down: draining active requests ...")
+            app.shutdown()
+            threading.Thread(target=httpd.shutdown, daemon=True).start()
+    finally:
+        app.shutdown()
+        try:
+            httpd.server_close()
+        except Exception:
+            pass
+        print("Server stopped.")
 
 if __name__ == '__main__':
     run()

@@ -1,5 +1,5 @@
 from http.server import BaseHTTPRequestHandler
-class ResoponseClass:
+class ResponseClass:
     def __init__(self,response,responseCode,mimeType):
         self.content = response
         self.responseCode = responseCode
@@ -22,7 +22,7 @@ class PyopReq(BaseHTTPRequestHandler):
     def GETPOST(self):
         pass
 
-    def send_custom_response(self,response:ResoponseClass):
+    def send_custom_response(self,response:ResponseClass):
         pass
 
     def handle_one_request(self):
